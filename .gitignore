@@ -1,1 +1,6 @@
-^data$
+^.*\.Rproj$
+^\.Rproj\.user$
+data/
+.Rhistory
+images/
+!images/ocr/tesseract_fails/
