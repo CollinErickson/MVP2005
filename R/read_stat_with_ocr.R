@@ -38,9 +38,9 @@ read_stat_with_ocr <- function(img, y, x=1263, width=85, height=65,
           cat(paste("OCR found: ", stat_ocr), "\n")
           
           # Sometimes goes off track onto the heatmap page
-          if (stat_ocr %in% c("HOT", "UTRA", "COLD")) {
+          if (stat_ocr %in% c("HOT", "UTRA", "COLD", "UTRI", "UTR", "7OLD", "OFF", "ON", "GULA")) {
             timestamp()
-            # browser()
+            return(NA)
           }
           stat_int <- suppressWarnings(as.integer(stat_ocr))
           # Make sure it found number
@@ -57,7 +57,7 @@ read_stat_with_ocr <- function(img, y, x=1263, width=85, height=65,
       }
     }
   }
-  print("OCR found nothing")  # If failed, save to folder for review later
+  cat("OCR found nothing\n")  # If failed, save to folder for review later
   
   # Check if images matches something in labeled images
   label_match <- matching_image_label(img_crop)

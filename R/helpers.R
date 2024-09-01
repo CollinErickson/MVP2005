@@ -191,7 +191,7 @@ if (F) {
 
 discrete_values <- c(0,10,20,30,40,50,55,60,65,70,75,80,85,90,95,99)
 adjustLRdiscrete <- function(start, goal) {
-  cat("LR discrete", start, goal, "\n")
+  # cat("LR discrete", start, goal, "\n")
   stopifnot(length(start) == 1,
             length(goal)==1,
             start %in% discrete_values,
@@ -246,3 +246,51 @@ pitch_order <- c("Changeup", 'Curveball', 'Knuckleball',
                  'Splitter', '2-Seam Fastball',
                  'Cutter', 'Circle Change', 'Forkball',
                  'Knucklecurve', 'Palmball', 'Slurve')
+pitch_speed_default <- c(78,76,67,
+                         79,88,86,
+                         85,91,
+                         89,77,81,
+                         67,72,79)
+
+# Delivery names and their probability (relative, to give variation but avoid classic)
+pitcher_delivery_options <- c(
+  "Style 1"=1, "Style 2"=1, "Style 3"=1, "Style 4"=1,
+  "Style 5"=1, "Style 6"=1, "Style 7"=1,
+  "Style 8"=1, "Style 9"=1, "Style 10"=1, "Style 11"=1,
+  "Classic 1"=0, "Classic 2"=0, "Classic 3"=0,
+  'K. Brown'=0, 'Foulke'=1, 'E. Gagne'=1, 'B. Gibson'=0, 'Glavine'=1, 'R. Halladay'=1, 
+  'Hasegawa'=1, 'O. Hernandez'=1, 'Hoffman'=0, 'T. Hudson'=1, 'C. Hunter'=0, 
+  'Ishii'=1, 'R. Johnson'=1, 'W. Johnson'=0, 'Kim'=0, 'Lowe'=1, 'Maddux'=1,
+  'J. Marichal'=0, 'P. Martinez'=1, 'M. Morris'=1, 'Moyer'=1, 
+  'M. Mulder'=1, 'Mussina'=1, 'Nelson'=1, 'Nomo'=0, 'Ohka'=1, 'Oswalt'=1,
+  'S. Paige'=0, 'Park'=1, 'Ol. Perez'=1, 'Pettitte'=1, 'M. Prior'=1, 'M. Redman'=1, 
+  'Rivera'=1, 'N. Ryan'=0, 'Schilling'=1, 'Schmidt'=1, 'T. Seaver'=1, 'J. Seo'=1,
+  'Smoltz'=1, 'Wakefield'=1, 'Weber'=1, 'D. Wells'=1, 'D. Willis'=1, 'B. Zito'=1
+)
+stopifnot(is.numeric(pitcher_delivery_options))
+
+# batter stance names and their probability (relative, to give variation but avoid bent)
+batter_stance_options <- c(
+  "Generic"=5, "Generic 2"=1, "Generic 3"=0, "Bent"=0, "Closed"=0, "Crouched"=1,
+  "High"=1, "Open"=0, "Upright"=1, 
+  "Classic 1"=1, "Classic 2"=0, "Classic 3"=1, "Alou"=1, "Bagwell"=1,
+  "Beltre"=1, "Y. Berra"=1, 
+  "B. Boone"=1, "Burnitz"=1, "R. Carew"=0, "E. Chavez"=1, "T. Cobb"=1, 
+  "Counsell"=0, "Delgado"=1, 
+  "Durham"=1, "Everett"=1, "Floyd"=1, "J. Franco"=1, 
+  "Fullmer"=1, "Garciaparra"=1, "L. Gehrig"=1,
+  "Giambi"=1, "Giles"=1, "Glaus"=1, "J. Gonzalez"=1, "L. Gonzalez"=0,
+  "Green"=1, "Griffey Jr."=1, "V. Guerrero"=1, "Helton"=1, "Ichiro"=1,
+  "R. Jackson"=1, "Jeter"=1,
+  "A. Jones"=1, "C. Jones"=1, "Klesko"=1, "Lofton"=1, "H. Matsui"=1, "K. Matsui"=1,
+  "J. Morgan"=1, "M. Ordonez"=1, "D. Ortiz"=1, "Piazza"=1, "A. Pujols"=1,
+  "M. Ramirez"=1, "Renteria"=1, "A. Rodriguez"=1, "B. Ruth"=0, "Sheffield"=1,
+  "Sierra"=1, "Sosa"=1, "Thomas"=1, "Thome"=1, "Vina"=1, "H. Wagner"=1,
+  "Walker"=1, "B. Williams"=1)
+stopifnot(is.numeric(batter_stance_options))
+
+
+kill_all_ahk <- function() {
+  system("wmic process where \"commandline like '%%.ahk'\" delete")
+  Sys.sleep(.25)
+}

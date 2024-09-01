@@ -16,7 +16,7 @@ Interrupted := 0
   SoundBeep(523, 500)
   Global Interrupted
   Interrupted := 0
-  SetKeyDelay 175, 70  ; 75ms between keys, 25ms between down/up.
+  SetKeyDelay 100, 50  ; 75ms between keys, 25ms between down/up.
 
   
         SendEvent "k" ; enter player

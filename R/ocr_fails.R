@@ -13,6 +13,21 @@ delete_dup_ocr_fails <- function() {
     iii <- iii + 1
     imgnu <- magick::image_read(paste0("./images/ocr/tesseract_fails/",
                                        non_unique_files[[1]]))
+    # Delete all black images, only one color channel, not three
+    if (dim(imgnu[[1]])[1] == 1) {
+      # browser()
+      cat("Deleting all black pic\n")
+      file.remove(paste0("./images/ocr/tesseract_fails/",
+                         non_unique_files[[1]]))
+      next
+    }
+    # try2 <- try(imgnu[[1]][1:3,,])
+    # if (inherits(try2, "try-error")) {
+    #   print(paste0("./images/ocr/tesseract_fails/",
+    #                non_unique_files[[1]]))
+    #   browser()
+    # }
+    
     is_unique <- TRUE
     
     # Loop over unique images to check for match

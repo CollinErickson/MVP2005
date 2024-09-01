@@ -17,7 +17,7 @@ Interrupted := 0
 
   
     SetKeyDelay 175, 25  ; 75ms between keys, 25ms between down/up.
-    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+    SetKeyDelay 95, 40  ; 75ms between keys, 25ms between down/up
     SendEvent "k"
       Sleep 3000
   If (Interrupted > 0) {
@@ -36,11 +36,12 @@ Interrupted := 0
   }
 
     SendEvent "ds" ; 	move from done to z
-  SendEvent "ddk" ; 	c
-  SendEvent "wdddk" ; 	h
-  SendEvent "waak" ; 	r
+  SendEvent "wddddk" ; 	g
+  SendEvent "waak" ; 	e
+  SendEvent "dk" ; 	r
+  SendEvent "k" ; 	r
   SendEvent "ddddk" ; 	i
-  SendEvent "saaaaaak" ; 	s
+  SendEvent "aaak" ; 	t
 	SendEvent "u" ; 	Done
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -61,9 +62,9 @@ Interrupted := 0
   }
 
   
-  SendEvent "k" ; 	s
-  SendEvent "ak" ; 	a
-  SendEvent "ddddddddk" ; 	l
+  SendEvent "ssaak" ; 	c
+  SendEvent "wwddddddk" ; 	o
+  SendEvent "sk" ; 	l
   SendEvent "waaaaaak" ; 	e
 	SendEvent "u" ; 	Done
   If (Interrupted > 0) {
@@ -81,7 +82,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaa"
+    SendEvent "d"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -98,7 +99,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddddddddddddddd"
+    SendEvent "aaaaaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -115,7 +116,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -159,25 +160,11 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "d"
-
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
   
 
 	; Bats
 	SendEvent "s" ; 	 move to throws
   
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
-    SendEvent "d"
-
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -219,7 +206,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddddddddddddddddddddddddddddddddd"
+    SendEvent "dddddddddddddddddddddddddddddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -236,7 +223,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddd"
+    SendEvent "dddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -283,7 +270,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaaaa"
+    SendEvent "aaaaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -300,7 +287,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaaaa"
+    SendEvent "aaaaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -317,7 +304,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaaaaaa"
+    SendEvent "aaaaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -334,7 +321,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaaaaaa"
+    SendEvent "aaaaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -385,7 +372,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddd"
+    SendEvent "dddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -402,7 +389,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "a"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -419,8 +406,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "d"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -436,7 +422,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
+    SendEvent "aaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -453,7 +439,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddddd"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -470,7 +456,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaa"
+    SendEvent "aaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -487,7 +473,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
+    SendEvent "dd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -504,7 +490,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
+    SendEvent "dd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -582,7 +568,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -599,7 +585,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -616,7 +602,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -684,7 +670,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -701,7 +687,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -718,7 +704,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -786,7 +772,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -803,7 +789,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -820,7 +806,338 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitcher tab
+	SendEvent "999" ; 	 move to Pitcher tab
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Stamina
+	    SendEvent "s" ; 	 move to Stamina
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddddddddddddddddddddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pickoff
+	    SendEvent "s" ; 	 move to Pickoff
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "aaaaaa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Fastball Control
+	    SendEvent "s" ; 	 move to Fastball Control
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddddddddddddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Fastball Velocity
+	    SendEvent "s" ; 	 move to Fastball Velocity
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch type
+      	    SendEvent "s" ; 	 move to pitch type
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Movement
+      	    SendEvent "s" ; 	 move to Pitch Movement
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Trajectory
+      	    SendEvent "s" ; 	 move to Pitch Trajectory
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "aa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Control
+      	    SendEvent "s" ; 	 move to Pitch Control
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddddddddddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Velocity
+      	    SendEvent "s" ; 	 move to Pitch Velocity
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch type
+      	    SendEvent "s" ; 	 move to pitch type
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Movement
+      	    SendEvent "s" ; 	 move to Pitch Movement
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Trajectory
+      	    SendEvent "s" ; 	 move to Pitch Trajectory
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Control
+      	    SendEvent "s" ; 	 move to Pitch Control
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddddddddddddddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Velocity
+      	    SendEvent "s" ; 	 move to Pitch Velocity
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch type
+      	    SendEvent "s" ; 	 move to pitch type
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Movement
+      	    SendEvent "s" ; 	 move to Pitch Movement
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Trajectory
+      	    SendEvent "s" ; 	 move to Pitch Trajectory
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "aaa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Control
+      	    SendEvent "s" ; 	 move to Pitch Control
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddddddddddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Velocity
+      	    SendEvent "s" ; 	 move to Pitch Velocity
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)

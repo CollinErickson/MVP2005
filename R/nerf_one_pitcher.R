@@ -6,6 +6,8 @@ if (!exists("read_stat_with_ocr")) {
 # Reduce the stats of a batter down to 0
 
 nerf_one_pitcher <- function(add_at_end=NULL) {
+  cat("Starting nerf_one_pitcher\n")
+  
   # Make sure that file doesn't exist ----
   if (file.exists("./autohotkey/nerf_one_pitcher_p1_done.txt")) {
     file.remove("./autohotkey/nerf_one_pitcher_p1_done.txt")
@@ -35,7 +37,7 @@ Interrupted := 0
   SoundBeep(523, 500)
   Global Interrupted
   Interrupted := 0
-  SetKeyDelay 175, 70  ; 75ms between keys, 25ms between down/up.\n'
+  SetKeyDelay 100, 50  ; 75ms between keys, 25ms between down/up.\n'
 
 
 
@@ -86,13 +88,19 @@ trigger_time <- Sys.time()
 # Loop, check for file 
 cat("R will now wait for ahk to run", "\n")
 ahk_done <- FALSE
+cat_progress <- progress::progress_bar$new(
+  format="Waiting for ahk p1 :elapsed", total=NA, clear=F, width=60
+)
 while (as.numeric(Sys.time()-trigger_time,units="secs") < 120) {
-  cat('wait ahk',
-      as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  # cat('wait ahk',
+  #     as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  cat_progress$tick()
   if (file.exists("./autohotkey/nerf_one_pitcher_p1_done.txt")) {
     ahk_done <- TRUE
-    cat("Found ahk done!", "\n")
+    cat("\nFound ahk done!", "\n")
+    rm(cat_progress)
     file.remove("./autohotkey/nerf_one_pitcher_p1_done.txt")
+    kill_all_ahk()
     break
   }
   Sys.sleep(.5)
@@ -240,13 +248,19 @@ trigger_time <- Sys.time()
 # Loop, check for file 
 cat("R will now wait for ahk to run", "\n")
 ahk_done <- FALSE
+cat_progress <- progress::progress_bar$new(
+  format="Waiting for ahk p2 :elapsed", total=NA, clear=F, width=60
+)
 while (as.numeric(Sys.time()-trigger_time,units="secs") < 120) {
-  cat('wait for ahk',
-      as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  # cat('wait for ahk',
+  #     as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  cat_progress$tick()
   if (file.exists("./autohotkey/nerf_one_pitcher_p2_done.txt")) {
     ahk_done <- TRUE
-    cat("Found ahk done!", "\n")
+    cat("\nFound ahk done!", "\n")
+    rm(cat_progress)
     file.remove("./autohotkey/nerf_one_pitcher_p2_done.txt")
+    kill_all_ahk()
     break
   }
   Sys.sleep(.5)

@@ -5,6 +5,8 @@ if (!exists("read_stat_with_ocr")) {
 # Reduce the stats of a batter down to 0
 
 nerf_one_batter <- function(add_at_end=NULL) {
+  cat("Starting nerf_one_pitcher\n")
+  
   # Make sure that file doesn't exist ----
   if (file.exists("./autohotkey/nerf_one_batter_p1_done.txt")) {
     file.remove("./autohotkey/nerf_one_batter_p1_done.txt")
@@ -89,13 +91,19 @@ trigger_time <- Sys.time()
 # Loop, check for file 
 cat("R will now wait for ahk to run", "\n")
 ahk_done <- FALSE
+cat_progress <- progress::progress_bar$new(
+  format="Waiting for ahk p1 :elapsed", total=NA, clear=F, width=60
+)
 while (as.numeric(Sys.time()-trigger_time,units="secs") < 120) {
-  cat('p1 wait ahk', 
-      as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  # cat('p1 wait ahk', 
+  #     as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  cat_progress$tick()
   if (file.exists("./autohotkey/nerf_one_batter_p1_done.txt")) {
     ahk_done <- TRUE
-    cat("Found ahk done!", "\n")
+    cat("\nFound ahk done!", "\n")
+    rm(cat_progress)
     file.remove("./autohotkey/nerf_one_batter_p1_done.txt")
+    kill_all_ahk()
     break
   }
   Sys.sleep(.5)
@@ -218,13 +226,19 @@ trigger_time <- Sys.time()
 # Loop, check for file 
 cat("R will now wait for ahk to run", "\n")
 ahk_done <- FALSE
+cat_progress <- progress::progress_bar$new(
+  format="Waiting for ahk p2 :elapsed", total=NA, clear=F, width=60
+)
 while (as.numeric(Sys.time()-trigger_time,units="secs") < 120) {
-  cat('p2 wait ahk',
-      as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  # cat('p2 wait ahk',
+  #     as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  cat_progress$tick()
   if (file.exists("./autohotkey/nerf_one_batter_p2_done.txt")) {
     ahk_done <- TRUE
-    cat("Found ahk done!", "\n")
+    cat("\nFound ahk done!", "\n")
+    rm(cat_progress)
     file.remove("./autohotkey/nerf_one_batter_p2_done.txt")
+    kill_all_ahk()
     break
   }
   Sys.sleep(.5)
@@ -358,13 +372,19 @@ trigger_time <- Sys.time()
 # Loop, check for file 
 cat("R will now wait for ahk to run", "\n")
 ahk_done <- FALSE
+cat_progress <- progress::progress_bar$new(
+  format="Waiting for ahk p3 :elapsed", total=NA, clear=F, width=60
+)
 while (as.numeric(Sys.time()-trigger_time,units="secs") < 120) {
-  cat('p3 wait ahk', 
-      as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  # cat('p3 wait ahk', 
+  #     as.numeric(Sys.time()-trigger_time,units="secs"), "\n")
+  cat_progress$tick()
   if (file.exists("./autohotkey/nerf_one_batter_p3_done.txt")) {
     ahk_done <- TRUE
-    cat("Found ahk done!", "\n")
+    cat("\nFound ahk done!", "\n")
+    rm(cat_progress)
     file.remove("./autohotkey/nerf_one_batter_p3_done.txt")
+    kill_all_ahk()
     break
   }
   Sys.sleep(.5)

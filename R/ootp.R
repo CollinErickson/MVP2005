@@ -8,7 +8,7 @@ if (!exists('round_to_discrete')) {
 
 # Read csv ----
 # ootpdf <- readr::read_csv("C:\\Users\\colli\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 19\\saved_games\\New Game.lg\\import_export\\mlb_rosters2.txt")
-ootpdf <- readr::read_csv("./data/ootp25_mlb_rosters2_20240829.txt", skip = 0)
+ootpdf <- readr::read_csv("./data/OOTP/ootp25_mlb_rosters2_20240829.txt", skip = 0)
 
 ootpdf
 ootpdf$id %>% stringr::str_sub(1,2) %>% head
@@ -107,6 +107,9 @@ ootpdf <- ootpdf %>%
 # Changed from 2019 to 2025. No pitchers are 1. SP are 11, RP are 12/13.
 # Then OOTP added 0, which appears to be 2-way players. I'll make them all RP.
 ootpdf$Position[ootpdf$Position == 0] <- 12
+# Change Ohtani to be SP. 
+ootpdf$Position[ootpdf$LastName=="Ohtani" & ootpdf$FirstName=='Shohei'] <- 11
+
 ootpdf$Position %>% table
 # ootpdf %>%
 #   filter( 
@@ -158,6 +161,26 @@ ootpdf <- ootpdf %>% mutate(
   # ) %>% select(`MVP_First Position`, `MVP_Second Position`) %>% table # to check
 )
 
+# Add orgs ----
+ootpdf_MLB_teammap <- ootpdf %>% filter(`League Name` == "Major League Baseball") %>%
+  select(team_id, `Team Name`, `League Name`) %>%
+  distinct %>% 
+  mutate(org_id=team_id)
+stopifnot(nrow(ootpdf_MLB_teammap) == 30)
+
+# stop('xxx fix teammap')
+ootpdf_teammap <- ootpdf %>% select(team_id, `Team Name`, `League Name`) %>% 
+  distinct() %>%
+  filter(team_id > 0) %>% mutate(isMLB=`League Name` == 'Major League Baseball') %>% 
+  mutate(org_id=cumsum(isMLB)) %>% group_by(org_id) %>% 
+  mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
+
+ootpdf <- ootpdf %>%
+  left_join(ootpdf_teammap %>% select(-team_id, -`League Name`),
+            by = c("Team Name"), 
+            suffix = c('', '_teammap'))
+
+# Stats ----
 # Look at some of these stat distributions
 library(ggplot2)
 # ootpdf %>%
@@ -229,6 +252,7 @@ invert_ecdf <- function(ecdf, y, from, to, n=20) {
   right <- to
   yleft <- ecdf(left)
   yright <- ecdf(right)
+  # print(c(y, yleft))
   stopifnot(left <= right, yleft <= yright, y>=yleft, y<= yright)
   for (i in 1:n) {
     # print(c(left, right, yleft, yright))
@@ -242,6 +266,7 @@ invert_ecdf <- function(ecdf, y, from, to, n=20) {
       yright <- ymid
       
     }
+    # print(c(y, yleft))
     stopifnot(left <= right, yleft <= yright, y>=yleft, y<= yright)
   }
   list(minimum=.5*(left + right),
@@ -283,7 +308,7 @@ for (irow in 1:nrow(statmap)) {
       istatweight <- statmap[[paste0("OOTPWeight", istat)]][irow]
       iOOTPPitchType <- statmap$OOTPPitchType[irow]
       refvals <- ootpdf %>% 
-        filter(`expected level` < 3.5, # MLB/AAA/AA
+        filter(level_id < 3.5, # MLB/AAA/AA
                team_id > 0,
                (statmap$StatType[irow]=="B") |
                  (statmap$StatType[irow]=="P" & Position > 10.5) |
@@ -328,7 +353,7 @@ for (irow in 1:nrow(statmap)) {
     stopifnot(level_quantile_map_x >= mvpmin, level_quantile_map_x <= mvpmax)
     
     ootpstat <- ootpdf %>% 
-      filter(`expected level` == ilevel, 
+      filter(level_id == ilevel, 
              team_id > 0,
              (statmap$StatType[irow]=="B") |
                (statmap$StatType[irow]=="P" & Position > 10.5) |
@@ -345,7 +370,7 @@ for (irow in 1:nrow(statmap)) {
       # invert_out <- invert(ootpecdf, level_quantile_map_q[ipair],
       #                      min(ootpstat), max(ootpstat))
       invert_out <- invert_ecdf(ootpecdf, level_quantile_map_q[ipair],
-                                min(ootpstat), max(ootpstat))
+                                min(ootpstat)-.0001, max(ootpstat))
       # curve(ootpecdf, min(ootpstat), max(ootpstat))
       if (invert_out$objective > .01) {
         browser()
@@ -367,21 +392,33 @@ for (irow in 1:nrow(statmap)) {
   # approxfun(mon1$t, mon1$estimation, rule = 2) %>% 
   #   curve(min(ootpvals), max(ootpvals))
   # cmspline <- demography::cm.spline(ootpvals, mvpvals)
-  scammod <- scam::scam(mvpvals ~ s(ootpvals, bs='mpi',
-                                    k=max(2,length(ootpvals) - 2)),
-                        weights=weights)
+  for (iscam in 1:3) {
+    try_scammod <- try({
+      scammod <- scam::scam(mvpvals ~ s(ootpvals, bs='mpi',
+                                        k=max(2,length(ootpvals) - 2 - (iscam-1))),
+                            weights=weights)
+    }, silent = T)
+    if (!inherits(try_scammod, "try-error")) {
+      break
+    }
+    if (iscam == 3) {
+      stop("3 bad scams")
+    }
+  }
   scampreds <- predict(scammod, 
                        data.frame(ootpvals=seq(min(ootpvals), 
                                                max(ootpvals), l=101))) %>% 
     as.vector %>% unname
   points(seq(min(ootpvals), max(ootpvals), l=101), scampreds, col=2, type='l')
   
+  noise <- if (is.na(statmap$Noise[irow])) {0} else {statmap$Noise[irow]}
   # Predict, round, and save stat
   ootpdf[paste0("MVP_", statmap$MVPStatName[irow])] <- 
     predict(scammod, 
             # data.frame(ootpvals=ootpdf[[statmap$OOTPStatName1[irow]]])) %>% 
             data.frame(ootpvals=ootpdf$processedstat)) %>% 
-    as.vector %>% unname %>% 
+    as.vector %>% unname %>%
+    {. + rnorm(length(.), 0, noise)} %>% 
     pmax(mvpmin) %>% 
     pmin(mvpmax) %>% 
     {
@@ -425,7 +462,7 @@ if (!exists("peopledf")) {
 #                     by=c(FGid="FGid"))
 # Join to peopledf to get bbrefminors_id
 MLB_prospectsdf2 <- MLB_prospectsdf %>%
-  transmute(MLB_URL=URL, MLB_prospect_rank=rank, MLBID) %>% 
+  transmute(MLB_URL=URL, MLB_prospect_rank=rank, MLBID=as.character(MLBID)) %>% 
   inner_join(peopledf %>% transmute(MLBID=as.character(key_mlbam),
                                     bbref_id=as.character(key_bbref),
                                     bbrefminors_id=as.character(key_bbref_minors)),
@@ -443,22 +480,6 @@ ootpdf <- ootpdf %>%
 # Heatmaps
 # TODO
 
-# Add orgs ----
-ootpdf_MLB_teammap <- ootpdf %>% filter(`League Name` == "Major League Baseball") %>%
-  select(team_id, `Team Name`, `League Name`) %>%
-  distinct %>% 
-  mutate(org_id=team_id)
-stopifnot(nrow(ootpdf_MLB_teammap) == 30)
-
-# stop('xxx fix teammap')
-ootpdf_teammap <- ootpdf %>% select(team_id, `Team Name`, `League Name`) %>% 
-  distinct() %>%
-  filter(team_id > 0) %>% mutate(isMLB=`League Name` == 'Major League Baseball') %>% 
-  mutate(org_id=cumsum(isMLB)) %>% group_by(org_id) %>% 
-  mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
-
-ootpdf <- ootpdf %>%
-  left_join(ootpdf_teammap %>% select(-team_id), by = c("Team Name"))
 
 # MVP OverallEst
 ootpdf <- ootpdf %>% 
@@ -488,7 +509,7 @@ ootpdf <- ootpdf %>%
 # TODO
 ootpdf <- ootpdf %>% 
   group_by(org_id, IsPitcher=Position>10.5) %>% 
-  arrange(MLB_prospect_rank, if(level_id < 2.5, 0, 1), -MVP_OverallEst) %>% 
+  arrange(MLB_prospect_rank, ifelse(level_id < 2.5, 0, 1), -MVP_OverallEst) %>% 
   mutate(MVP_include = 1:n() <= 50) %>% 
   arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
   mutate(MVP_org_position_rank=1:n()) %>% 
@@ -499,6 +520,26 @@ if (F) {
     relocate(MVP_OverallEst, MLB_prospect_rank, MVP_include, 
              MVP_org_position_rank, FirstName, LastName) %>% View
 }
+stopifnot(
+  ootpdf %>% filter(team_id>0, MVP_include) %>% group_by(org_id) %>% 
+    count %>% pull(n) == rep(100,30)
+)
+# Assign to teams ----
+ootpdf <- ootpdf %>% 
+  mutate(MVP_level_id = case_when(
+    is.na(org_id) ~ NA, # Free agents
+    MVP_org_position_rank <= 12 ~ 1,
+    MVP_org_position_rank == 13 & !IsPitcher ~ 1,
+    MVP_org_position_rank <= 25 ~ 2,
+    MVP_org_position_rank <= 37 ~ 3,
+    MVP_org_position_rank == 38 & !IsPitcher ~ 3,
+    MVP_org_position_rank <= 50 ~ 4,
+    T ~ NA # Not in top 100 of org
+  ))
+# ootpdf %>% with(table(MVP_level_id, useNA='always'))
+stopifnot(ootpdf %>% filter(!is.na(MVP_level_id)) %>%
+            group_by(MVP_org_id, MVP_level_id) %>%
+            count %>% pull(n) %>% {.==25})
 
 
 # Career potential ----
@@ -517,13 +558,66 @@ ootpdf <- ootpdf %>% mutate(MLB_prospect_rank2=coalesce(MLB_prospect_rank, 100))
 
 ootpdf$MVP_org_id <- ootpdf$org_id
 
+# Pitcher delivery ----
+ootpdf$`MVP_Pitcher Delivery` <- ifelse(
+  ootpdf$IsPitcher,
+  sample(names(pitcher_delivery_options), nrow(ootpdf), T, pitcher_delivery_options),
+  NA
+)
+
+# Batter stance ----
+ootpdf$`MVP_Batter Stance` <- sample(
+  names(batter_stance_options), nrow(ootpdf), T, batter_stance_options)
+
+# Check number of pitches for pitchers. They need at least 2.
+ootpdf <- ootpdf %>% 
+  mutate(Npitches_ootp=(`Fastball (scale: 0-5)`>0) +
+           (Changeup > 0) +
+           (Curveball > 0) +
+           (Knuckleball > 0) +
+           (Screwball > 0) +
+           (Sinker > 0) +
+           (Slider > 0) +
+           (Splitter > 0) +
+           # No 2-seam
+           (Cutter > 0) +
+           (Circlechange > 0) +
+           (Forkball > 0) + 
+           (Knucklecurve > 0)
+         # No palmball
+         # Slurve
+  ) %>% 
+  mutate(Npitches_MVP= 0 + 
+           as.integer(!is.na(`MVP_Fastball Control`)) +
+           as.integer(!is.na(`MVP_Changeup Control`)) +
+           as.integer(!is.na(`MVP_Curveball Control`)) +
+           # !is.na() + No knuckleball
+           # !is.na() + No Screwball
+           as.integer(!is.na(`MVP_Sinker Control`)) +
+           as.integer(!is.na(`MVP_Slider Control`)) +
+           as.integer(!is.na(`MVP_Splitter Control`)) +
+           # !is.na(MVP2s) + # No 2-seam
+           as.integer(!is.na(`MVP_Cutter Control`)) +
+           as.integer(!is.na(`MVP_Circle Change Control`))
+         # !is.na(MVPfork) + # No forkball
+         # !is.na(MVPkncur) + # No knucklecurve
+         # !is.na(MVPpalm) + # No palmball
+         # !is.na(MVPslu) + # No slurve
+  )
+ootpdf %>% 
+  filter(IsPitcher) %>% with(table(Npitches_MVP, Npitches_ootp))
+# Pitches with 1 MVP pitch (fastball), also get average changeup
+ootpdf$`MVP_Changeup Control`[ootpdf$Npitches_MVP == 1] <- 50
+ootpdf$`MVP_Changeup Movement`[ootpdf$Npitches_MVP == 1] <- 50
+ootpdf$`MVP_Changeup Velocity`[ootpdf$Npitches_MVP == 1] <- 76
+ootpdf$Npitches_MVP[ootpdf$Npitches_MVP == 1] <- 2
 
 # MVPdf ----
 # Now prepare MVP df
 MVPdf <- ootpdf[,grepl("MVP_", colnames(ootpdf))]
 colnames(MVPdf) <- colnames(MVPdf) %>% substring(5, nchar(.))
 MVPdf
-View(MVPdf)
+# View(MVPdf)
 
 # Check some things
 MVPdf$`Body Type` %>% table
@@ -531,5 +625,6 @@ MVPdf$`Body Type` %>% table
 
 # Write csv ----
 if (F) {
-  readr::write_csv(MVPdf, paste0("./data/MVProsters/MVProsters_", Sys.Date(), ".csv"))
+  readr::write_csv(MVPdf, 
+                   paste0("./data/MVProsters/MVProsters_", Sys.Date(), ".csv"))
 }
