@@ -86,8 +86,8 @@ nerf_rosters <- function(norgs=1, nlevels=4, nplayersfirst=25, nplayers=25,
 if (T) {
   cat("Switch windows now", "\n")
   Sys.sleep(2)
-  nerf_rosters(norgs=3,
-               nlevels=2, nlevelsfirst=2,
+  nerf_rosters(norgs=1,
+               nlevels=1, nlevelsfirst=1,
                nplayers=25, nplayersfirst=25)
 }
 

@@ -69,7 +69,8 @@ and leave them on the Free Agent list.
 
 * No heatmaps
 
-* No 2-seamers (need a better data source)
+* My data source doesn't have 2-seamers, only sinkers, so I randomly converted
+half of them to be 2-seam FB (need a better data source)
 
 * No rare pitches (a few pitchers should have knuckleball, screwball, forkball)
 

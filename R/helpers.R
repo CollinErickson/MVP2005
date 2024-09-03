@@ -58,6 +58,16 @@ charlocation <- list(
 
 
 typeout2 <- function(x, start='done') {
+  # browser()
+  stopifnot(is.character(x), length(x) == 1)
+  # Clean accents "Loáisiga"
+  x <- stringi::stri_trans_general(x, id = "Latin-ASCII")
+  # Remove spaces, periods, commas
+  x <- x %>%
+    stringr::str_replace(" ", "") %>% 
+    stringr::str_replace("\\.", "") %>% 
+    stringr::str_replace(",", "")
+  
   # # Move to z from back
   # y <- '  SendEvent "aaaaw" ; \tmove from back to z'
   # Move to z from entry point
@@ -71,16 +81,30 @@ typeout2 <- function(x, start='done') {
   
   
   for (i in 1:nchar(x)) {
+    if (!(tolower(substring(x, i, i))) %in% letters) {
+      cat("Had to skip letter:", substring(x, i, i), "\n")
+      next
+    }
     # browser()
     if (i==1) {
       loc1 <- charlocation[[start]]
     } else {
-      loc1 <- charlocation[[tolower(substr(x,i-1,i-1))]]
+      # loc1 <- charlocation[[tolower(substr(x,i-1,i-1))]]
+      loc1 <- loc2
     }
     loc2 <- charlocation[[tolower(substr(x,i,i))]]
     
+    capitalize_i <- (i > 1.5 && (substr(x,i,i) %in% LETTERS))
+    
+    # Capitalize this letter, need to turn off after
+    if (capitalize_i) {
+      y <- paste0(y, "\n  SendEvent \"j\" ; capitalize")
+    }
     
     y <- paste0(y, "\n  SendEvent \"")
+    # browser()
+    # if (inherits(if (loc1[1] < loc2[1]) {}, "try-error")) {browser();1}
+    # print(length(loc1[1] < loc2[1]))
     # Up
     if (loc1[1] < loc2[1]) {
       for (j in 1:(loc2[1] - loc1[1])) {
@@ -110,6 +134,11 @@ typeout2 <- function(x, start='done') {
     
     y <- paste0(y, "\" ; \t",
                 tolower(substr(x,i,i)))
+    
+    # Decapitalize
+    if (capitalize_i) {
+      y <- paste0(y, "\n  SendEvent \"j\" ; decapitalize")
+    }
     
     # if (i == 1) {
     #   y <- paste0(y, "j ; lower case for remainder")
@@ -150,17 +179,46 @@ if (F) {
   cat(typeout2("aaron"))
 }
 
-adjustLR <- function(x) {
+adjustLR <- function(x, keyright='d', keyleft='a') {
   if (x > 0) {
-    paste0("  SendEvent \"", paste(rep("d", x), collapse=''), "\"\n")
+    paste0("  SendEvent \"", paste(rep(keyright, x), collapse=''), "\"\n")
   } else
     if (x < 0) {
-      paste0("  SendEvent \"", paste(rep("a", -x), collapse=''), "\"\n")
+      paste0("  SendEvent \"", paste(rep(keyleft, -x), collapse=''), "\"\n")
     }
 }
 if (F) {
   cat(adjustLR(5))
   cat(adjustLR(-3))
+}
+adjustLRapprox <- function(start, goal, minval, maxval,
+                           keyright='d', keyleft='a') {#browser()
+  diff <- abs(start - goal)
+  dist_from_edge <- ifelse(start < goal, 
+                           maxval - goal,
+                           goal - minval)
+  # If close to start or close to edge, do exact
+  if (diff <= 12 || dist_from_edge < 4) {
+    return(adjustLRcts(start=start, goal=goal, minval=minval, maxval=maxval))
+  }
+  # Do approx
+  hold_length <- round((diff --3.66572375)/  0.02399106, 3)
+    key <- ifelse(goal > start, keyright, keyleft)
+  paste0('
+    SetKeyDelay 75, ', hold_length, '  ; Hold for X seconds to move fast than
+                          ; repeated presses, should get within 1, need to be
+                          ; running PCSX2 at 2x speed
+    SendEvent "', key, '" ; Set movement to 0
+    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+  ')
+}
+if (F) {
+  cat(adjustLRapprox(50, 5, minval=0, maxval=100))
+  cat(adjustLRapprox(50, 95, minval=0, maxval=100))
+  cat(adjustLRapprox(50, 45, minval=0, maxval=100))
+  cat(adjustLRapprox(50, 1, minval=0, maxval=100))
+  cat(adjustLRapprox(50, 90, minval=0, maxval=100))
+  cat(adjustLRapprox(50, 70, minval=0, maxval=100))
 }
 
 # Go either way. cts means 0 to 100 scale
@@ -198,7 +256,7 @@ adjustLRdiscrete <- function(start, goal) {
             goal %in%discrete_values)
   s2 <- which(start == discrete_values)
   g2 <- which(goal == discrete_values)
-  print(c(s2,g2))
+  # print(c(s2,g2))
   if (abs(g2 - s2) <= 9) {
     adjustLR(g2 - s2)
   } else { # go across 0
@@ -294,3 +352,28 @@ kill_all_ahk <- function() {
   system("wmic process where \"commandline like '%%.ahk'\" delete")
   Sys.sleep(.25)
 }
+
+# Order the teams in MVP show up (on the FA page)
+MVP_org_order <- c('LAA', 'HOU', 'OAK', 'TOR', 'ATL', 'MIL', 'STL',
+                   'CHC', 'TBR', 'ARI', 'LAD', 'SFG', 'CLE', 'SEA',
+                   'MIA', 'NYM', 'WAS', 'BAL', 'SDP', 'PHI', 'PIT',
+                   'TEX', 'BOS', 'CIN', 'COL', 'KCR', 'DET', 'MIN',
+                   'CHW', 'NYY')
+# team_id for the MLB teams
+OOTP_team_id_order <- c('ARI', 'ATL', 'BAL', 'BOS', 'CHW', 'CHC', 'CIN',
+                    'CLE', 'COL', 'DET', 'MIA', 'HOU', 'KCR', 'LAA',
+                    'LAD', 'MIL', 'MIN', 'NYY', 'NYM', 'OAK', 'PHI',
+                    'PIT', 'SDP', 'SEA', 'SFG', 'STL', 'TBR', 'TEX',
+                    'TOR', 'WAS')
+# Order of the MLB teams from the OOTP spreadsheet
+OOTP_MLB_team_order <- c('BAL', 'BOS', 'NYY', 'TBR', 'TOR',
+                         'CHW', 'CLE', 'DET', 'KCR', 'MIN',
+                         'LAA', 'OAK', 'SEA', 'TEX', 'HOU',
+                         'ATL', 'MIA', 'NYM', 'PHI', 'WAS',
+                         'CHC', 'CIN', 'MIL', 'PIT', 'STL',
+                         'ARI', 'COL', 'LAD', 'SDP', 'SFG')
+stopifnot(length(MVP_org_order) == 30, 
+          length(OOTP_org_order) == 30,
+          length(OOTP_MLB_team_order) == 30,
+          sort(MVP_org_order) == sort(OOTP_org_order),
+          sort(MVP_org_order) == sort(OOTP_MLB_team_order))

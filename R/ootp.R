@@ -36,7 +36,28 @@ ootpdf$`MVP_Birth Year` <- ootpdf$YearOB
 ootpdf$MVP_Throws <- c("R", "L")[ootpdf$Throws]
 ootpdf$MVP_Bats <- c("R", "L", "S")[ootpdf$Bats]
 
-# facial_type ----
+
+# Add orgs ----
+ootpdf_MLB_teammap <- ootpdf %>% 
+  filter(`League Name` == "Major League Baseball") %>%
+  select(team_id, `Team Name`, `League Name`) %>%
+  distinct %>% 
+  mutate(org_id=team_id)
+stopifnot(nrow(ootpdf_MLB_teammap) == 30)
+
+# stop('xxx fix teammap')
+ootpdf_teammap <- ootpdf %>% select(team_id, `Team Name`, `League Name`) %>% 
+  distinct() %>%
+  filter(team_id > 0) %>% mutate(isMLB=`League Name` == 'Major League Baseball') %>% 
+  mutate(org_id=cumsum(isMLB)) %>% group_by(org_id) %>% 
+  mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
+
+ootpdf <- ootpdf %>%
+  left_join(ootpdf_teammap %>% select(-team_id, -`League Name`),
+            by = c("Team Name"), 
+            suffix = c('', '_teammap'))
+
+# Facial Type ----
 # 1: Black
 # 2: Asian
 # 3: Pacific islander
@@ -49,17 +70,18 @@ ootpdf$MVP_Bats <- c("R", "L", "S")[ootpdf$Bats]
 ootpdf <- ootpdf %>% 
   mutate(MVP_Face=ifelse(
     facial_type == 1,
-    sample(1:5, size=n(), replace=T),
+    sample(11:15, size=n(), replace=T),
     ifelse(
-      facial_type <= 4,
+      facial_type %in% c(2,3,5),
       sample(6:10, size=n(), replace=T),
-      sample(11:15, size=n(), replace=T)
+      sample(1:5, size=n(), replace=T)
       
     )
   )
   )
 
-# MVP hair: pick based on race ----
+# Hair color ----
+# Pick based on race
 # 1: black
 # 2,3: blond
 # 4: red
@@ -78,6 +100,21 @@ ootpdf <- ootpdf %>%
     )
   )
   )
+
+# Hair style ----
+# 1 bald
+# 10 corn rows
+# 2-9 are all generic, use them
+ootpdf <- ootpdf %>% 
+  mutate("MVP_Hair Style"=sample(2:9, size=n(), replace=T))
+
+# Facial Hair ----
+# 1-8
+# 1, 3-5 are okay for Yankees
+ootpdf <- ootpdf %>% 
+  mutate("MVP_Facial Hair"=ifelse(org_id==3,
+                                  sample(c(1,3:5), size=n(), replace=T),
+                                  sample(1:8, size=n(), replace=T)))
 
 # Body type: ----
 # It looks like ootp says `Weight (kg)` but is actually in LBs 
@@ -106,6 +143,10 @@ ootpdf <- ootpdf %>%
 # OOTP has 1-9. All pitchers are 1. Need to split them into RP/SP
 # Changed from 2019 to 2025. No pitchers are 1. SP are 11, RP are 12/13.
 # Then OOTP added 0, which appears to be 2-way players. I'll make them all RP.
+# There appears to be clear hump for stamina between SP and RP, but
+# if you just go by 11/12/13, then some have stamina that appears to be for
+# other group. Solution: don't use 11/12/13 to determine SP/RP, use a stamina
+# cutoff.
 ootpdf$Position[ootpdf$Position == 0] <- 12
 # Change Ohtani to be SP. 
 ootpdf$Position[ootpdf$LastName=="Ohtani" & ootpdf$FirstName=='Shohei'] <- 11
@@ -118,21 +159,24 @@ ootpdf$Position %>% table
 #   ) %>% 
 #   ggplot(aes(
 #     Stamina,
-#     color=as.factor(`expected level`),
-#     group=as.factor(`expected level`))) +
+#     color=as.factor(level_id),
+#     group=as.factor(level_id))) +
 #   geom_density()
 # Add positions now
 ootpdf <- ootpdf %>% mutate(
   "MVP_First Position"=case_when(
-    Position==11 ~ 'SP', # &
-    # ((Stamina > 80 & `expected level`==1) |
-    #    (Stamina > 70 & `expected level`==2) |
-    #    (Stamina > 70 & `expected level`==3) |
-    #    (Stamina > 65 & `expected level`==4) |
-    #    (Stamina > 65 & `expected level`==5) |
-    #    (Stamina > 65 & `expected level` > 5)) ~ 'SP',
-    Position==12 ~ 'RP',
-    Position==13 ~ 'RP',
+    Position > 10.5 &
+    ((Stamina > 88 & level_id==1) |
+       (Stamina > 64 & level_id==2) |
+       (Stamina > 60 & level_id==3) |
+       (Stamina > 58 & level_id==4) |
+       (Stamina > 56 & level_id==5) |
+       (Stamina > 54 & level_id > 5)) ~ 'SP',
+    Position > 10.5 ~ 'RP',
+    # 11/12/13 have some weird stamina that mess up the distribution
+    # Position==11 ~ 'SP',
+    # Position==12 ~ 'RP',
+    # Position==13 ~ 'RP',
     Position==2 ~ 'C',
     Position==3 ~ '1B',
     Position==4 ~ '2B',
@@ -161,24 +205,7 @@ ootpdf <- ootpdf %>% mutate(
   # ) %>% select(`MVP_First Position`, `MVP_Second Position`) %>% table # to check
 )
 
-# Add orgs ----
-ootpdf_MLB_teammap <- ootpdf %>% filter(`League Name` == "Major League Baseball") %>%
-  select(team_id, `Team Name`, `League Name`) %>%
-  distinct %>% 
-  mutate(org_id=team_id)
-stopifnot(nrow(ootpdf_MLB_teammap) == 30)
 
-# stop('xxx fix teammap')
-ootpdf_teammap <- ootpdf %>% select(team_id, `Team Name`, `League Name`) %>% 
-  distinct() %>%
-  filter(team_id > 0) %>% mutate(isMLB=`League Name` == 'Major League Baseball') %>% 
-  mutate(org_id=cumsum(isMLB)) %>% group_by(org_id) %>% 
-  mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
-
-ootpdf <- ootpdf %>%
-  left_join(ootpdf_teammap %>% select(-team_id, -`League Name`),
-            by = c("Team Name"), 
-            suffix = c('', '_teammap'))
 
 # Stats ----
 # Look at some of these stat distributions
@@ -306,6 +333,9 @@ for (irow in 1:nrow(statmap)) {
         next
       }
       istatweight <- statmap[[paste0("OOTPWeight", istat)]][irow]
+      if (is.na(istatweight)) {
+        stop("istatweight is NA")
+      }
       iOOTPPitchType <- statmap$OOTPPitchType[irow]
       refvals <- ootpdf %>% 
         filter(level_id < 3.5, # MLB/AAA/AA
@@ -325,7 +355,8 @@ for (irow in 1:nrow(statmap)) {
         .[[istatname]]
       refmean <- mean(refvals)
       refsd <- sd(refvals)
-      ootpdf$processedstat <- ootpdf$processedstat + (ootpdf[[istatname]] - refmean) / refsd
+      ootpdf$processedstat <- ootpdf$processedstat + 
+        istatweight * (ootpdf[[istatname]] - refmean) / refsd
       
     }
   } else {
@@ -384,7 +415,8 @@ for (irow in 1:nrow(statmap)) {
       
     }
   }
-  plot(ootpvals, mvpvals, cex=weights)
+  plot(ootpvals, mvpvals, cex=weights, 
+       main=paste(irow, statmap$MVPStatName[irow]))
   
   # mon1 <- monreg::monreg(ootpvals, mvpvals, hd = 15, hr = .5)
   # mon1
@@ -480,16 +512,18 @@ ootpdf <- ootpdf %>%
 # Heatmaps
 # TODO
 
-
 # MVP OverallEst
 ootpdf <- ootpdf %>% 
-  mutate(MVP_Stamina=coalesce(`MVP_Stamina SP`, `MVP_Stamina RP`)) %>% 
+  mutate(MVP_Stamina=ifelse(`MVP_First Position`=="SP",
+                            `MVP_Stamina SP`, `MVP_Stamina RP`)) %>% 
   select(-`MVP_Stamina SP`, -`MVP_Stamina RP`) %>% 
   mutate(MVP_OverallEst=case_when(
     Position < 10.5 ~ (`MVP_Contact vs LHP`+`MVP_Contact vs RHP` +
                          `MVP_Power vs LHP`+`MVP_Power vs RHP` +
                          MVP_Speed)/5,
-    Position > 10.5 ~ (ifelse(Position<11.5,MVP_Stamina, pmin(99,MVP_Stamina*100/60)) + `MVP_Fastball Control` + `MVP_Fastball Velocity` +
+    Position > 10.5 ~ (ifelse(`MVP_First Position`=="SP",MVP_Stamina, 
+                              pmin(99,MVP_Stamina*100/60)) + 
+                         `MVP_Fastball Control` + `MVP_Fastball Velocity` +
                          pmax(`MVP_Slider Control`, `MVP_Splitter Control`,
                               `MVP_Curveball Control`, `MVP_Sinker Control`,
                               `MVP_Changeup Control`, 0, na.rm=T) +
@@ -536,6 +570,9 @@ ootpdf <- ootpdf %>%
     MVP_org_position_rank <= 50 ~ 4,
     T ~ NA # Not in top 100 of org
   ))
+
+ootpdf$MVP_org_id <- ootpdf$org_id
+
 # ootpdf %>% with(table(MVP_level_id, useNA='always'))
 stopifnot(ootpdf %>% filter(!is.na(MVP_level_id)) %>%
             group_by(MVP_org_id, MVP_level_id) %>%
@@ -556,8 +593,6 @@ ootpdf <- ootpdf %>% mutate(MLB_prospect_rank2=coalesce(MLB_prospect_rank, 100))
     TRUE ~ 1
   ))
 
-ootpdf$MVP_org_id <- ootpdf$org_id
-
 # Pitcher delivery ----
 ootpdf$`MVP_Pitcher Delivery` <- ifelse(
   ootpdf$IsPitcher,
@@ -569,6 +604,27 @@ ootpdf$`MVP_Pitcher Delivery` <- ifelse(
 ootpdf$`MVP_Batter Stance` <- sample(
   names(batter_stance_options), nrow(ootpdf), T, batter_stance_options)
 
+# 2-seam FBs ----
+# Convert sinkers randomly to 2-seamers
+# Hope to change this in the future
+index2SFB <- sample(which(ootpdf$`MVP_Sinker Control` > 0),
+                    size=floor(length(which(ootpdf$`MVP_Sinker Control` > 0))/2),
+                    replace=FALSE)
+ootpdf$`MVP_2-Seam Fastball Control` <- NA
+ootpdf$`MVP_2-Seam Fastball Movement` <- NA
+ootpdf$`MVP_2-Seam Fastball Velocity` <- NA
+ootpdf$`MVP_2-Seam Fastball Control`[index2SFB] <- ootpdf$`MVP_Sinker Control`[index2SFB]
+ootpdf$`MVP_2-Seam Fastball Movement`[index2SFB] <- ootpdf$`MVP_Sinker Movement`[index2SFB]
+ootpdf$`MVP_2-Seam Fastball Velocity`[index2SFB] <- ootpdf$`MVP_Sinker Velocity`[index2SFB]
+ootpdf$`MVP_Sinker Control`[index2SFB] <- NA
+ootpdf$`MVP_Sinker Movement`[index2SFB] <- NA
+ootpdf$`MVP_Sinker Velocity`[index2SFB] <- NA
+
+# Batter ditty ----
+# 7 options, choose randomly
+ootpdf$`MVP_Batter Ditty Type` <- sample(1:7, nrow(ootpdf), replace=T)
+
+# Check 2+ pitches ----
 # Check number of pitches for pitchers. They need at least 2.
 ootpdf <- ootpdf %>% 
   mutate(Npitches_ootp=(`Fastball (scale: 0-5)`>0) +
@@ -596,7 +652,7 @@ ootpdf <- ootpdf %>%
            as.integer(!is.na(`MVP_Sinker Control`)) +
            as.integer(!is.na(`MVP_Slider Control`)) +
            as.integer(!is.na(`MVP_Splitter Control`)) +
-           # !is.na(MVP2s) + # No 2-seam
+           as.integer(!is.na(`MVP_2-Seam Fastball Control`)) +
            as.integer(!is.na(`MVP_Cutter Control`)) +
            as.integer(!is.na(`MVP_Circle Change Control`))
          # !is.na(MVPfork) + # No forkball
@@ -614,14 +670,25 @@ ootpdf$Npitches_MVP[ootpdf$Npitches_MVP == 1] <- 2
 
 # MVPdf ----
 # Now prepare MVP df
-MVPdf <- ootpdf[,grepl("MVP_", colnames(ootpdf))]
-colnames(MVPdf) <- colnames(MVPdf) %>% substring(5, nchar(.))
+# Keep columns that start with "MVP_" and others specified
+MVPdf <- ootpdf[,c(
+  colnames(ootpdf)[grepl("MVP_", colnames(ootpdf))],
+  'bbref_id', 'bbrefminors_id'
+)]
+# Remove "MVP_" from start of colnames where applicable
+colnames(MVPdf) <- colnames(MVPdf) %>% 
+  {ifelse(grepl("MVP_", .),
+          substring(., 5, nchar(.)),
+          .)}
 MVPdf
 # View(MVPdf)
 
 # Check some things
 MVPdf$`Body Type` %>% table
 
+stopifnot(nrow(MVPdf %>% filter(include, is.na(bbrefminors_id))) == 0)
+# Some of these IDs are duplicated!!!
+# stopifnot(!anyDuplicated(MVPdf$bbrefminors_id))
 
 # Write csv ----
 if (F) {

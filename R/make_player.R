@@ -55,6 +55,7 @@ add('
     SendEvent "k"
       Sleep 3000')
 
+# General Information tab ----
 # First name
 # Enter and Delete name
 add(
@@ -194,6 +195,14 @@ add(
 )
 add(adjustLR(df$`Career Potential` - 1))
 
+# Batter ditty type, 1-7
+add(
+  '\n\n\t; Batter ditty type
+	SendEvent "s" ; \t move to Batter ditty type
+  '
+)
+add(adjustLRcts(1, df$`Batter Ditty Type`, maxval=7, minval=1))
+
 
 # Move to Appearance tab ---------
 add(
@@ -207,27 +216,74 @@ add(
   '\n\n\t; Jersey number
   '
 )
-if (df$`Jersey Number` <= 70) {
-  add(adjustLR(df$`Jersey Number` - 15))
-} else {
-  add(adjustLR(-(115 - df$`Jersey Number`)))
-}
+# if (df$`Jersey Number` <= 70) {
+#   add(adjustLR(df$`Jersey Number` - 15))
+# } else {
+#   add(adjustLR(-(115 - df$`Jersey Number`)))
+# }
+add(adjustLRcts(15, df$`Jersey Number`, maxval=99, minval=0))
 
 # Height, starts on 6'0" (72)
 add(
-  '\n\n\t; Career potential
-	SendEvent "s" ; \t move to car pot
+  '\n\n\t; Height
+	SendEvent "s" ; \t move to Height
   '
 )
 add(adjustLR(pmax(-6, pmin(12,df$Height - 72))))
 
+# Body type, starts on Atheletic, skinny to left, heavy to right
+add(
+  '\n\n\t; Body type
+	SendEvent "ss" ; \t move to face
+  '
+)
+if (df$`Body Type` == "Heavy") {
+  add(adjustLR(1))
+} else if (df$`Body Type` == "Skinny") {
+  add(adjustLR(-1))
+} else {
+  # Athletic, no change needed
+}
+
+# Face, starts on 8, ranges from 1 to 15
+add(
+  '\n\n\t; Face
+	SendEvent "s" ; \t move to face
+  '
+)
+add(adjustLRcts(8, df$Face, minval=1, maxval=15))
+
+# Hair color, starts on 3, ranges from 3 to 7
+add(
+  '\n\n\t; Hair color
+	SendEvent "s" ; \t move to Hair color
+  '
+)
+add(adjustLRcts(3, df$`Hair Color`, minval=1, maxval=7))
+
+# Hair style, starts on 5, ranges from 1 to 10
+add(
+  '\n\n\t; Hair style
+	SendEvent "s" ; \t move to Hair style
+  '
+)
+add(adjustLRcts(5, df$`Hair Style`, minval=1, maxval=10))
+
+# Facial hair, starts on 4, ranges from 1 to 10
+add(
+  '\n\n\t; Facial hair
+	SendEvent "s" ; \t move to Facial hair
+  '
+)
+add(adjustLRcts(4, df$`Facial Hair`, minval=1, maxval=8))
 
 
 
 # Move to Body Build tab ----------
 add(
   '\n\n\t; Body build tab
-	SendEvent "9" ; \t move to throws
+	SendEvent "9" ; \t move to body build tab
+	Sleep 40 ;
   '
 )
 
@@ -236,6 +292,7 @@ add(
 add(
   '\n\n\t; Equipment tab
 	SendEvent "9" ; \t move to equipment tab
+	Sleep 40 ;
   '
 )
 
@@ -244,6 +301,7 @@ add(
 add(
   '\n\n\t; Batter/Fielder Ratings tab
 	SendEvent "9" ; \t move to Batter/Fielder Ratings tab
+	Sleep 40 ;
   '
 )
 
@@ -252,8 +310,9 @@ add(
 add(
   '\n\n\t; Batter stance
       ')
+
 which_bs <- which(df$`Batter Stance` == names(batter_stance_options))
-stopifnot(length(which_bs), is.integer(which_bs))
+stopifnot(length(which_bs) == 1, is.integer(which_bs))
 add(adjustLRcts(1,
                 which_bs,
                 minval=1, maxval=length(batter_stance_options)))
@@ -265,7 +324,8 @@ add(
 	SendEvent "s" ; \t move to Contact v R
   '
 )
-add(adjustLR(df$`Contact vs RHP` - 50))
+# add(adjustLR(df$`Contact vs RHP` - 50))
+add(adjustLRapprox(50, df$`Contact vs RHP`, minval=0, maxval=100))
 
 # Contact v L, 50
 add(
@@ -273,7 +333,9 @@ add(
 	SendEvent "s" ; \t move to Contact v R
   '
 )
-add(adjustLR(df$`Contact vs LHP` - 50))
+# add(adjustLR(df$`Contact vs LHP` - 50))
+add(adjustLRapprox(50, df$`Contact vs LHP`, minval=0, maxval=100))
+
 
 # Power v R, 50
 add(
@@ -281,7 +343,8 @@ add(
 	SendEvent "s" ; \t move to Power v R
   '
 )
-add(adjustLR(df$`Power vs RHP` - 50))
+# add(adjustLR(df$`Power vs RHP` - 50))
+add(adjustLRapprox(50, df$`Power vs RHP`, minval=0, maxval=100))
 
 # Power v L, 50
 add(
@@ -289,7 +352,8 @@ add(
 	SendEvent "s" ; \t move to Power v R
   '
 )
-add(adjustLR(df$`Power vs LHP` - 50))
+# add(adjustLR(df$`Power vs LHP` - 50))
+add(adjustLRapprox(50, df$`Power vs LHP`, minval=0, maxval=100))
 
 # Bunting
 add(
@@ -376,6 +440,7 @@ add(adjustLRdiscrete(50, df$`Throwing Accuracy`))
 add(
   '\n\n\t; Batter Tendencies tab
 	SendEvent "9" ; \t move to Batter Tendencies tab
+	Sleep 40 ;
   '
 )
 
@@ -536,7 +601,7 @@ if (df$`First Position` %in% c("SP", "RP")) {
     '\n\n\t; Pitcher Delivery
       ')
   which_pd <- which(df$`Pitcher Delivery` == names(pitcher_delivery_options))
-  stopifnot(length(which_pd), is.integer(which_pd))
+  stopifnot(length(which_pd) == 1, is.integer(which_pd))
   add(adjustLRcts(1,
                   which_pd,
                   minval=1, maxval=length(pitcher_delivery_options)))
@@ -546,7 +611,8 @@ if (df$`First Position` %in% c("SP", "RP")) {
     '\n\n\t; Stamina
 	    SendEvent "s" ; \t move to Stamina
       ')
-  add(adjustLR(df$Stamina - 50))
+  # add(adjustLR(df$Stamina - 50))
+  add(adjustLRapprox(50, df$Stamina, minval=1, maxval=99))
   
   # Pickoff
   add(
@@ -560,7 +626,8 @@ if (df$`First Position` %in% c("SP", "RP")) {
     '\n\n\t; Fastball Control
 	    SendEvent "s" ; \t move to Fastball Control
       ')
-  add(adjustLR(df$`Fastball Control` - 50))
+  # add(adjustLR(df$`Fastball Control` - 50))
+  add(adjustLRapprox(50, df$`Fastball Control`, minval=0, maxval=100))
   
   # Fastball Velocity
   add(
@@ -606,7 +673,10 @@ if (df$`First Position` %in% c("SP", "RP")) {
           '\n\n\t; Pitch Control
       	    SendEvent "s" ; \t move to Pitch Control
             ')
-        add(adjustLR(df[[paste0(pitch_order[i], " Control")]] - 50))
+        # add(adjustLR(df[[paste0(pitch_order[i], " Control")]] - 50))
+        add(adjustLRapprox(50, 
+                           df[[paste0(pitch_order[i], " Control")]],
+                           minval=0, maxval=100))
         
         # Pitch Velocity
         add(
@@ -622,6 +692,13 @@ if (df$`First Position` %in% c("SP", "RP")) {
   }
   
 } # End is pitcher
+
+
+# Save player
+add(
+  '\n\n\t; Save player
+      	    SendEvent "usk" ; \t Save player
+            ')
 
 # End ahk
 # Write out file ----
@@ -688,7 +765,7 @@ return()
 # cat(player_ahk)
 # write(x=player_ahk, file="./autohotkey/write_player.ahk")
 
-if (T) {
+if (F) {
   cat("Switch windows now", "\n")
   Sys.sleep(2)
   make_player_from_row(players[1,])
