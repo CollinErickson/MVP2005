@@ -1,9 +1,9 @@
 library(dplyr)
 if (F) {
-  Sys.sleep(2); screenshot::screenshot(file="./images/edit_greinke.png")
-  Sys.sleep(2); screenshot::screenshot(file="./images/edit_sweeney.png")
-  Sys.sleep(2); screenshot::screenshot(file="./images/edit_lima.png")
-  Sys.sleep(2); screenshot::screenshot(file="./images/edit_long.png")
+  # Sys.sleep(2); screenshot::screenshot(file="./images/edit_greinke.png")
+  # Sys.sleep(2); screenshot::screenshot(file="./images/edit_sweeney.png")
+  # Sys.sleep(2); screenshot::screenshot(file="./images/edit_lima.png")
+  # Sys.sleep(2); screenshot::screenshot(file="./images/edit_long.png")
   greinke <- magick::image_read("./images/edit_greinke.png")
   sweeney <- magick::image_read("./images/edit_sweeney.png")
   lima <- magick::image_read("./images/edit_lima.png")
@@ -35,7 +35,15 @@ is_pitcher_on_edit_player_page <- function(img) {
   img_crop <- magick::image_crop(img,geometry="65x85+725+400",gravity="NorthWest",repage=TRUE)
   avg3 <- magick::image_resize(img_crop, c(1,1)) %>% .[[1]] %>% .[,1,1] %>% as.integer() %>% {mean(.[1:3])}
   
-  return(avg3 < 110)
+  # return(avg3 < 110)
+  
+  if (abs(avg3 - 83) < 1) {
+    return(TRUE)
+  }
+  if (abs(avg3-136.3333) < 1) {
+    return(FALSE)
+  }
+  stop("Error in is_pitcher_on_edit_player_page: Not on the player list screen")
 }
 if (F) {
   is_pitcher_on_edit_player_page(greinke)

@@ -67,6 +67,10 @@ typeout2 <- function(x, start='done') {
     stringr::str_replace(" ", "") %>% 
     stringr::str_replace("\\.", "") %>% 
     stringr::str_replace(",", "")
+  # If last 2 are Jr, remove it
+  if (substring(x, nchar(x) - 1) == "Jr") {
+    x <- substring(x, 1,nchar(x) - 2)
+  }
   
   # # Move to z from back
   # y <- '  SendEvent "aaaaw" ; \tmove from back to z'
@@ -276,6 +280,27 @@ if (F) {
   cat(adjustLRdiscrete(65, 30))
 }
 
+adjustLRnoneorcts <- function(start, goal, keyright='d', keyleft='a') {
+  stopifnot(length(start) == 1, start %in% c("NONE", 1:6))
+  stopifnot(length(goal) == 1, goal %in% c("NONE", 1:6))
+  if (start == goal) {
+    # Done
+  } else if (start == "NONE") {
+    paste0("  SendEvent \"", paste(rep(keyright, as.integer(goal)), collapse=''), "\"\n")
+  } else if (goal == "NONE") {
+    paste0("  SendEvent \"", paste(rep(keyleft, as.integer(start)), collapse=''), "\"\n")
+  } else {
+    adjustLR(as.integer(goal) - as.integer(start))
+  }
+}
+if (F) {
+  cat(adjustLRnoneorcts(1,2))
+  cat(adjustLRnoneorcts("NONE", "NONE"))
+  cat(adjustLRnoneorcts("NONE", 5))
+  cat(adjustLRnoneorcts(4,"NONE"))
+}
+
+
 round_to_discrete <- function(x) {
   stopifnot(is.numeric(x))
   discrete_mids <- (discrete_values[1:15] +discrete_values[2:16])/2
@@ -294,7 +319,8 @@ if (F) {
 }
 
 first_position_order <- c("1B", "2B", "3B", "SS", "LF", "CF", "RF", "RP", "SP", "C")
-second_position_order <- c("C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "OF", "IF", "UTIL", "RP", "SP")
+second_position_order <- c("C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "OF",
+                           "IF", "UTIL", "NONE", "RP", "SP")
 
 
 # KeyboardSimulator::keybd.press("shift+ctrl+1")
@@ -347,24 +373,30 @@ batter_stance_options <- c(
   "Walker"=1, "B. Williams"=1)
 stopifnot(is.numeric(batter_stance_options))
 
-
 kill_all_ahk <- function() {
-  system("wmic process where \"commandline like '%%.ahk'\" delete")
-  Sys.sleep(.25)
+  # Kill processes
+  # system("wmic process where \"commandline like '%%.ahk'\" delete")
+  
+  # Alternatively, kill AHK itself. 
+  system('taskkill /im "AUTOHO~1.exe"')
+  Sys.sleep(.2)
 }
 
+# MVP_org_order ----
 # Order the teams in MVP show up (on the FA page)
 MVP_org_order <- c('LAA', 'HOU', 'OAK', 'TOR', 'ATL', 'MIL', 'STL',
                    'CHC', 'TBR', 'ARI', 'LAD', 'SFG', 'CLE', 'SEA',
                    'MIA', 'NYM', 'WAS', 'BAL', 'SDP', 'PHI', 'PIT',
                    'TEX', 'BOS', 'CIN', 'COL', 'KCR', 'DET', 'MIN',
                    'CHW', 'NYY')
+# OOTP_team_id_order ----
 # team_id for the MLB teams
 OOTP_team_id_order <- c('ARI', 'ATL', 'BAL', 'BOS', 'CHW', 'CHC', 'CIN',
                     'CLE', 'COL', 'DET', 'MIA', 'HOU', 'KCR', 'LAA',
                     'LAD', 'MIL', 'MIN', 'NYY', 'NYM', 'OAK', 'PHI',
                     'PIT', 'SDP', 'SEA', 'SFG', 'STL', 'TBR', 'TEX',
                     'TOR', 'WAS')
+# OOTP_MLB_team_order ----
 # Order of the MLB teams from the OOTP spreadsheet
 OOTP_MLB_team_order <- c('BAL', 'BOS', 'NYY', 'TBR', 'TOR',
                          'CHW', 'CLE', 'DET', 'KCR', 'MIN',
@@ -373,7 +405,34 @@ OOTP_MLB_team_order <- c('BAL', 'BOS', 'NYY', 'TBR', 'TOR',
                          'CHC', 'CIN', 'MIL', 'PIT', 'STL',
                          'ARI', 'COL', 'LAD', 'SDP', 'SFG')
 stopifnot(length(MVP_org_order) == 30, 
-          length(OOTP_org_order) == 30,
+          length(OOTP_team_id_order) == 30,
           length(OOTP_MLB_team_order) == 30,
-          sort(MVP_org_order) == sort(OOTP_org_order),
+          sort(MVP_org_order) == sort(OOTP_team_id_order),
           sort(MVP_org_order) == sort(OOTP_MLB_team_order))
+
+months <- c('JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+            'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER')
+month_to_int <- function(x) {
+  stopifnot(length(x) == 1, is.character(x))
+  m <- which(months == toupper(x))
+  stopifnot(length(m) == 1)
+  m
+}
+
+press_spacebar_when_done <- function() {
+  # Press spacebar when done
+  on.exit(expr={
+    r <- run_ahk_object$new()
+    r$add("SendEvent ' ' ; spacebar to pause PCSX2")
+    r$run_ahk(file_prefix="press_spacebar")
+  })
+}
+
+screenshot_and_read <- function(file) {
+  screenshot::screenshot(file=file)
+  magick::image_read(file)
+}
+
+batter_ditty_type_options <- c(
+  "COUNTRY", 'DANCE', 'HIP HOP', 'POP', 'ROCK', 'HEAVY ROCK', 'LATIN'
+)
