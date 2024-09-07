@@ -196,11 +196,14 @@ if (F) {
   cat(adjustLR(-3))
 }
 adjustLRapprox <- function(start, goal, minval, maxval,
-                           keyright='d', keyleft='a') {#browser()
+                           keyright='d', keyleft='a', careful=TRUE) {#browser()
   diff <- abs(start - goal)
   dist_from_edge <- ifelse(start < goal, 
                            maxval - goal,
                            goal - minval)
+  if (!careful) {
+    dist_from_edge <- 100
+  }
   # If close to start or close to edge, do exact
   if (diff <= 12 || dist_from_edge < 4) {
     return(adjustLRcts(start=start, goal=goal, minval=minval, maxval=maxval))
@@ -298,6 +301,14 @@ if (F) {
   cat(adjustLRnoneorcts("NONE", "NONE"))
   cat(adjustLRnoneorcts("NONE", 5))
   cat(adjustLRnoneorcts(4,"NONE"))
+}
+
+adjustLRcharlist <- function(start, goal, char_list, cts=T) {
+  stopifnot(length(start) == 1, length(goal) == 1,
+            start %in% char_list, goal %in% char_list)
+  i1 <- which(start == char_list)
+  i2 <- which(goal == char_list)
+  adjustLR(i2 - i1)
 }
 
 

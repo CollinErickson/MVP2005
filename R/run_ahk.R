@@ -37,10 +37,11 @@ add_SendEvent = function(text, rep=1) {
     text <- paste0(rep(text, rep), collapse=T)
   }
   self$add(paste0(
-    "Send Event ", text
+    "SendEvent '", text, "'"
   ))
 },
-run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240) {
+run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240,
+                   kill_before=TRUE, kill_after=FALSE) {
   textcs1=self$out
   if (length(textcs1) != 1) {
     browser('rahk l1')
@@ -77,7 +78,9 @@ run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240) {
   write(x=self$out, file=paste0("./autohotkey/", file_prefix, ".ahk"))
   
   # Kill any existing ahk ----
-  kill_all_ahk()
+  if (kill_before) {
+    kill_all_ahk()
+  }
   
   # Execute it ----
   # system('"C:/Program Files/AutoHotkey/UX/AutoHotkeyUX.exe" C:/Users/colli/Documents/codeprojects/MVP2005/autohotkey/beep.ahk',
@@ -101,7 +104,7 @@ run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240) {
     return()
   }
   
-  # Loop, check for file 
+  # Loop, check for file ----
   cat("R will now wait for ahk to run", "\n")
   ahk_done <- FALSE
   cat_progress <- progress::progress_bar$new(
@@ -124,9 +127,13 @@ run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240) {
     stop(paste0("move_fa_to_roster ahk failed to finish in ", wait_sec, " seconds"))
   }
   
+  # Kill after ----
+  if (kill_after) {
+    kill_all_ahk()
+  }
   
   cat("Finished run_ahk", file_prefix, "\n")
-  return()
+  return(invisible(self))
 }
   )
 )

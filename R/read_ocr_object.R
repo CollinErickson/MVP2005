@@ -46,10 +46,11 @@ read_ocr_object <- R6::R6Class(
       self$cts <- cts
       self$discrete <- discrete
       self$char <- char
-      self$char_list <- char_list
+      self$char_list <- if (!is.null(all_caps) && all_caps) {toupper(char_list)} else {char_list}
       self$crop <- crop
       self$minval <- minval
       self$maxval <- maxval
+      self$all_caps <- all_caps
       self$folder_path <- paste0("./images/ocr/read_ocr_object/", name, "/")
       if (!dir.exists(self$folder_path)) {
         dir.create(self$folder_path)
@@ -171,7 +172,7 @@ read_ocr_object <- R6::R6Class(
     }, # end get
     run_unique = function() {
       
-      cat("Starting delete_dup_ocr_fails", "\n")
+      cat("Starting delete_dup_ocr_fails for", self$name, "\n")
       fnames <- list.files(self$folder_path)
       unique_files <- fnames[grepl("unique", fnames)]
       unique_images <- lapply(
@@ -207,8 +208,9 @@ read_ocr_object <- R6::R6Class(
           
           # Most matches are around 0-0.02
           # "96" matched "90" with mean abs 2.48
-          if (mean(abs(as.integer(imgu[[1]][1:3,,]) -
-                       as.integer(imgnu[[1]][1:3,,]))) < 0.2) {
+          if (all(dim(imgu[[1]][1:3,,]) == dim(imgnu[[1]][1:3,,])) && 
+              (mean(abs(as.integer(imgu[[1]][1:3,,]) -
+                       as.integer(imgnu[[1]][1:3,,]))) < 0.2)) {
             # browser()
             is_unique <- FALSE
             cat("Found dup, difference was", 
@@ -240,7 +242,7 @@ read_ocr_object <- R6::R6Class(
     },
     run_labeler = function() {
       
-      cat("Starting label_ocr_fails", "\n")
+      cat("Starting label_ocr_fails for", self$name, "\n")
       fnames <- list.files(self$folder_path)
       unlabeled_files <- fnames[grepl("unique", fnames) & !grepl("label", fnames)]
       for (i in seq_along(unlabeled_files)) {
@@ -249,16 +251,17 @@ read_ocr_object <- R6::R6Class(
         plot(1:10)
         plot(img)
         input <- readline(prompt = "Enter number shown on image: ")
-        if (input == "delete") { # Some screenshots are errors
+        # browser()
+        if (tolower(input) == "delete") { # Some screenshots are errors
           file.remove(paste0(self$folder_path, unlabeled_files[i]))
         } else {
           if (self$char) {
             stopifnot(input != "")
-            if (!is.null(self$char_list)) {
-              stopifnot(input %in% self$char_list)
-            }
             if (self$all_caps) {
               input <- toupper(input)
+            }
+            if (!is.null(self$char_list)) {
+              stopifnot(input %in% self$char_list)
             }
           } else if (self$cts) {
             stopifnot(input != "", nchar(input) <= 3, !is.na(as.integer(input)))
