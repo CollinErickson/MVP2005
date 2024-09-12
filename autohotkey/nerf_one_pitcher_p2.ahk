@@ -220,6 +220,8 @@ Interrupted := 0
     Sleep 3000 ; Wait for roster page to load
     SendEvent "98" ; Reset to top of this roster
   
+             SendEvent " " ; 	pause PCSX2 when done
+            
   If (Interrupted > 0) {
       SoundBeep(523, 500)
       return      

@@ -34,7 +34,7 @@ Interrupted := 0
       return      
     }
 
-    SendEvent "aaaaaaaaaaaaaaaaaaaaaaa"
+    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
   If (Interrupted > 0) {
       SoundBeep(523, 500)
@@ -49,7 +49,7 @@ Interrupted := 0
       return      
     }
 
-    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
   If (Interrupted > 0) {
       SoundBeep(523, 500)
@@ -64,7 +64,7 @@ Interrupted := 0
       return      
     }
 
-    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
   If (Interrupted > 0) {
       SoundBeep(523, 500)
@@ -79,7 +79,7 @@ Interrupted := 0
       return      
     }
 
-    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
   If (Interrupted > 0) {
       SoundBeep(523, 500)
@@ -94,7 +94,7 @@ Interrupted := 0
       return      
     }
 
-    SendEvent "a"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
       SoundBeep(523, 500)
