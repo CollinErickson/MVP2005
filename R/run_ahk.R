@@ -30,6 +30,7 @@ add = function(x, interrupt=TRUE) {
     SoundBeep(523, 500)
     return      
   }\n")
+  return(invisible(self))
 },
 add_SendEvent = function(text, rep=1) {
   stopifnot(length(text) == 1)
@@ -39,6 +40,7 @@ add_SendEvent = function(text, rep=1) {
   self$add(paste0(
     "SendEvent '", text, "'"
   ))
+  return(invisible(self))
 },
 run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240,
                    kill_before=TRUE, kill_after=FALSE) {
@@ -145,7 +147,21 @@ if (F) {
 if (F) {
   run_ahk("SendEvent 'test run_ahk'", file_prefix="test run_ahk")
 }
+if (F) {
+  run_ahk_object$new()$add_SendEvent(" test 123 ")$run_ahk("tmp_zero_rosters")
+}
 
-# run_ahk_object_new <- function() {
-#   run_ahk_object$new()
-# }
+quick_run_ahk_SendEvent <- function(x) {
+  stopifnot(is.character(x), length(x) == 1)
+  run_ahk_object$new()$add_SendEvent(x)$run_ahk("tmp_quick_run_ahk")
+}
+if (F) {
+  quick_run_ahk_SendEvent(" test this  ")
+}
+quick_run_ahk <- function(x) {
+  stopifnot(is.character(x), length(x) == 1)
+  run_ahk_object$new()$add(x)$run_ahk("tmp_quick_run_ahk")
+}
+if (F) {
+  quick_run_ahk("SendEvent ' test this abc' ")
+}

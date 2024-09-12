@@ -7,6 +7,21 @@ if (!exists("is_pitcher_on_edit_player_page")) {
 # if (!exists("nerf_one_batter")) {
 #   source('./R/nerf_one_batter.R')
 # }
+if (!exists("run_ahk_object")) {
+  source("./R/run_ahk.R")
+}
+if (!exists("edit_player_read_ocr_objects")) {
+  source("./R/edit_player_read_ocr_objects.R")
+}
+if (!exists('adjustLR')) {
+  source("./R/helpers.R")
+}
+if (!exists('is_editable_player')) {
+  source("./R/is_editable_player.R")
+}
+if (!exists('is_pitcher_on_edit_player_page')) {
+  source("./R/is_pitcher_on_edit_player_page.R")
+}
 
 
 is_zeroed_pitcher_on_edit_player_page <- function(img) {
@@ -29,14 +44,16 @@ if (F) {
 }
 
 is_zeroed_batter_on_edit_player_page <- function(img) {
-  Sys.sleep(2); screenshot::screenshot(file="./images/tmp_is_zeroed_batter_on_edit_player_page.png")
-  ss <- magick::image_read("./images/tmp_is_zeroed_batter_on_edit_player_page.png")
-  magick::image_crop(ss, "50x140+822+350")[[1]][1:3,,] %>% as.integer %>% mean
-  # 82.363 for 0/80/0
+  # Sys.sleep(2); screenshot::screenshot(file="./images/tmp_is_zeroed_batter_on_edit_player_page.png")
+  # ss <- magick::image_read("./images/tmp_is_zeroed_batter_on_edit_player_page.png")
+  # magick::image_crop(ss, "50x140+822+350")[[1]][1:3,,] %>% as.integer %>% mean
+  # 82.363 for 0/80/0, 81.15795 for 0/0/0, 82.23629 for 38/40/75
+  # Change to use threshold for better result. 20.72162 for 0/0/0, 34.35452 for 38/40/75
   return(
     abs(
-      (magick::image_crop(img, "50x60+660+410")[[1]][1:3,,] %>%
-         as.integer %>% mean) - 81.15795) < 0.75
+      (magick::image_threshold(magick::image_crop(img, "50x140+822+350")
+                               )[[1]][1:3,,] %>%
+         as.integer %>% mean) - 20.72162) < 0.75
   )
 }
 if (F) {
@@ -44,8 +61,7 @@ if (F) {
 }
 
 
-zero_one_player <- function(add_at_end=NULL,
-                            add_at_beginning=NULL) {
+zero_one_player <- function() {
   zero_start_time <- Sys.time()
   # Check pitcher/hitter, if already zeroed ----
   # screenshot::screenshot(file="./images/tmp_zero_one_player.png")
@@ -60,12 +76,9 @@ zero_one_player <- function(add_at_end=NULL,
   # Check if zeroed
   if (is_pitcher) {
     cat("is pitcher", "\n")
-    # browser()
-    # nerf_one_pitcher(add_at_end=add_at_end)
     is_zeroed <- is_zeroed_pitcher_on_edit_player_page(img)
   } else {
     cat("is batter\n")
-    # nerf_one_batter(add_at_end=add_at_end)
     is_zeroed <- is_zeroed_batter_on_edit_player_page(img)
   }
   if (is_zeroed) {
@@ -99,7 +112,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(birth_month)) {
       r$add(adjustLRcts(month_to_int(birth_month), 1, minval=1, maxval=12))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     # Birth day
     # magick::image_crop(ss, "65x45+1270+580")
@@ -108,7 +121,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(birth_day)) {
       r$add(adjustLR(-(birth_day - 15)))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     # Birth year
     # magick::image_crop(ss, "110x40+1250+730")
@@ -117,7 +130,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(birth_year)) {
       r$add(adjustLRcts(birth_year, 1975, minval=1961, maxval=1987))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
   }
   # First position
@@ -139,7 +152,7 @@ zero_one_player <- function(add_at_end=NULL,
         r$add(adjustLR(-pos))
       }
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
   }
   
@@ -167,7 +180,7 @@ zero_one_player <- function(add_at_end=NULL,
         r$add(adjustLR(-(pos - 1)))
         
       } else {
-        something_failed <- FALSE
+        something_failed <- TRUE
       }  
     }
     
@@ -182,7 +195,7 @@ zero_one_player <- function(add_at_end=NULL,
           r$add_SendEvent('a')
         }
       } else {
-        something_failed <- FALSE
+        something_failed <- TRUE
       }
       rm(throws)
     } else {
@@ -200,12 +213,15 @@ zero_one_player <- function(add_at_end=NULL,
         r$add_SendEvent('d')
       }
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
-  }
+  } else {
+    r$add_SendEvent('w')
+  } # end is_editable
   
   # Career potential: set to 1 for real players, 5 for editables
   r$add_SendEvent('s')
+  # browser()
   if (is_editable) {
     r$add_SendEvent("dddd")
   } else {
@@ -221,7 +237,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcts(which(bdt==batter_ditty_type_options), 1, minval=1, 
                         maxval=length(batter_ditty_type_options)))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
   }
   
@@ -231,6 +247,7 @@ zero_one_player <- function(add_at_end=NULL,
   r$add_SendEvent('9s')
   r$run_ahk('zero_one_player', kill_before=FALSE)
   rm(r, ss)
+  # stop()
   
   
   # Appearance ----
@@ -244,10 +261,11 @@ zero_one_player <- function(add_at_end=NULL,
     # magick::image_crop(ss, "80x45+1260+435")
     jersey <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+435")
     if (!is.na(jersey)) {
-      r$add(adjustLRcts(jersey, 15, minval=1, 
+      
+      r$add(adjustLRcts(jersey, 15, minval=0, 
                         maxval=99))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     
     # Face
@@ -260,7 +278,7 @@ zero_one_player <- function(add_at_end=NULL,
                         maxval=15))
       r$add("SetKeyDelay 95, 40 ; slower for face")
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(face)
     
@@ -276,7 +294,7 @@ zero_one_player <- function(add_at_end=NULL,
                         maxval=7))
       r$add("SetKeyDelay 95, 40 ; slower for hair")
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(hair)
     
@@ -298,12 +316,13 @@ zero_one_player <- function(add_at_end=NULL,
                         maxval=10))
       r$add("SetKeyDelay 95, 40 ; slower for hair")
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(hair)
     
     # Facial hair
     r$add_SendEvent('s')
+    # browser()
     # magick::image_crop(ss, "80x45+1260+800")
     facialhair <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+800")
     if (!is.na(facialhair)) {
@@ -311,10 +330,10 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcts(facialhair, 1, minval=1, 
                         maxval=8))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(facialhair)
-  }
+  } # End is_editable
   
   r$add_SendEvent('9sssss') # Move to next tab
   r$run_ahk('zero_one_player', kill_before=FALSE)
@@ -325,104 +344,106 @@ zero_one_player <- function(add_at_end=NULL,
   ss <- screenshot_and_read("./images/tmp_zero_one_player.png")
   r <- run_ahk_object$new()
   
-  # Bat Color
-  r$add_SendEvent('wwwww')
-  # magick::image_crop(ss, "80x45+1260+435")
-  batcolor <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+435")
-  if (!is.na(batcolor)) {
-    r$add(adjustLRcts(batcolor, 1, minval=1, 
-                      maxval=8))
-  } else {
-    something_failed <- FALSE
-  }
-  
-  # Fielding glove
-  r$add_SendEvent('s')
-  # magick::image_crop(ss, "80x45+1260+508")
-  fglove <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+508")
-  if (!is.na(fglove)) {
-    r$add(adjustLRcts(fglove, 1, minval=1, 
-                      maxval=5))
-  } else {
-    something_failed <- FALSE
-  }
-  
-  # Elbow guard
-  r$add_SendEvent('s')
-  # magick::image_crop(ss, "95x45+1255+580")
-  elbowguard <- edit_player_read_ocr_objects$none_or_cts$ocr(ss, "95x45+1255+580")
-  if (!is.na(elbowguard)) {
-    r$add(adjustLRnoneorcts(elbowguard, "NONE"))
-  } else {
-    something_failed <- FALSE
-  }
-  rm(elbowguard)
-  
-  # Shin guard
-  r$add_SendEvent('s')
-  # magick::image_crop(ss, "95x45+1255+652")
-  shinguard <- edit_player_read_ocr_objects$none_or_cts$ocr(ss, "95x45+1255+652")
-  if (!is.na(shinguard)) {
-    r$add(adjustLRnoneorcts(shinguard, "NONE"))
-  } else {
-    something_failed <- FALSE
-  }
-  rm(shinguard)
-  
-  # Wrist guard
-  r$add_SendEvent('s')
-  magick::image_crop(ss, "95x45+1255+727")
-  wristguard <- edit_player_read_ocr_objects$none_or_cts$ocr(ss, "95x45+1255+727")
-  if (!is.na(wristguard)) {
-    # browser()
-    r$add(adjustLRnoneorcts(wristguard, "NONE"))
-  } else {
-    something_failed <- FALSE
-  }
-  rm(wristguard)
-  
-  r$add_SendEvent('ssswww')
-  r$run_ahk('zero_one_player', kill_before=FALSE)
-  rm(r, ss)
-  
-  # Equipment p2 ----
-  ss <- screenshot_and_read("./images/tmp_zero_one_player.png")
-  r <- run_ahk_object$new()
-  
-  # Socks
-  r$add_SendEvent('s')
-  # magick::image_crop(ss, "180x40+1210+655")
-  socks <- edit_player_read_ocr_objects$socks$ocr(ss, "180x40+1210+655")
-  if (!is.na(socks)) {
-    r$add(adjustLRcharlist(socks, "REGULAR",
-                           edit_player_read_ocr_objects$socks$char_list))
-  } else {
-    something_failed <- FALSE
-  }
-  rm(socks)
-  
-  # Catcher mask 1/2
-  r$add_SendEvent('s')
-  magick::image_crop(ss, "80x45+1260+727")
-  catchermask <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+727")
-  if (!is.na(catchermask)) {
-    stopifnot(catchermask %in% c(1,2))
-    r$add(adjustLR(catchermask - 1))
-  } else {
-    something_failed <- FALSE
-  }
-  rm(catchermask)
-  
-  # Batting gloves on/off
-  r$add_SendEvent('s')
-  magick::image_crop(ss, "80x45+1260+800")
-  bgloves <- edit_player_read_ocr_objects$on_off$ocr(ss, "80x45+1260+800")
-  if (!is.na(bgloves)) {
-    r$add(adjustLRcharlist(bgloves, "ON", c("ON", "OFF")))
-  } else {
-    something_failed <- FALSE
-  }
-  rm(bgloves)
+  if (is_editable) {
+    # Bat Color
+    r$add_SendEvent('wwwww')
+    # magick::image_crop(ss, "80x45+1260+435")
+    batcolor <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+435")
+    if (!is.na(batcolor)) {
+      r$add(adjustLRcts(batcolor, 1, minval=1, 
+                        maxval=8))
+    } else {
+      something_failed <- TRUE
+    }
+    
+    # Fielding glove
+    r$add_SendEvent('s')
+    # magick::image_crop(ss, "80x45+1260+508")
+    fglove <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+508")
+    if (!is.na(fglove)) {
+      r$add(adjustLRcts(fglove, 1, minval=1, 
+                        maxval=5))
+    } else {
+      something_failed <- TRUE
+    }
+    
+    # Elbow guard
+    r$add_SendEvent('s')
+    # magick::image_crop(ss, "95x45+1255+580")
+    elbowguard <- edit_player_read_ocr_objects$none_or_cts$ocr(ss, "95x45+1255+580")
+    if (!is.na(elbowguard)) {
+      r$add(adjustLRnoneorcts(elbowguard, "NONE"))
+    } else {
+      something_failed <- TRUE
+    }
+    rm(elbowguard)
+    
+    # Shin guard
+    r$add_SendEvent('s')
+    # magick::image_crop(ss, "95x45+1255+652")
+    shinguard <- edit_player_read_ocr_objects$none_or_cts$ocr(ss, "95x45+1255+652")
+    if (!is.na(shinguard)) {
+      r$add(adjustLRnoneorcts(shinguard, "NONE"))
+    } else {
+      something_failed <- TRUE
+    }
+    rm(shinguard)
+    
+    # Wrist guard
+    r$add_SendEvent('s')
+    magick::image_crop(ss, "95x45+1255+727")
+    wristguard <- edit_player_read_ocr_objects$none_or_cts$ocr(ss, "95x45+1255+727")
+    if (!is.na(wristguard)) {
+      # browser()
+      r$add(adjustLRnoneorcts(wristguard, "NONE"))
+    } else {
+      something_failed <- TRUE
+    }
+    rm(wristguard)
+    
+    r$add_SendEvent('ssswww')
+    r$run_ahk('zero_one_player', kill_before=FALSE)
+    rm(r, ss)
+    
+    # Equipment p2 ----
+    ss <- screenshot_and_read("./images/tmp_zero_one_player.png")
+    r <- run_ahk_object$new()
+    
+    # Socks
+    r$add_SendEvent('s')
+    # magick::image_crop(ss, "180x40+1210+655")
+    socks <- edit_player_read_ocr_objects$socks$ocr(ss, "180x40+1210+655")
+    if (!is.na(socks)) {
+      r$add(adjustLRcharlist(socks, "REGULAR",
+                             edit_player_read_ocr_objects$socks$char_list))
+    } else {
+      something_failed <- TRUE
+    }
+    rm(socks)
+    
+    # Catcher mask 1/2
+    r$add_SendEvent('s')
+    magick::image_crop(ss, "80x45+1260+727")
+    catchermask <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+727")
+    if (!is.na(catchermask)) {
+      stopifnot(catchermask %in% c(1,2))
+      r$add(adjustLR(catchermask - 1))
+    } else {
+      something_failed <- TRUE
+    }
+    rm(catchermask)
+    
+    # Batting gloves on/off
+    r$add_SendEvent('s')
+    magick::image_crop(ss, "80x45+1260+800")
+    bgloves <- edit_player_read_ocr_objects$on_off$ocr(ss, "80x45+1260+800")
+    if (!is.na(bgloves)) {
+      r$add(adjustLRcharlist(bgloves, "ON", c("ON", "OFF")))
+    } else {
+      something_failed <- TRUE
+    }
+    rm(bgloves)
+  } # end is_editable
   
   r$add_SendEvent('9sssss')
   r$run_ahk('zero_one_player', kill_before=FALSE)
@@ -432,30 +453,31 @@ zero_one_player <- function(add_at_end=NULL,
   ss <- screenshot_and_read("./images/tmp_zero_one_player.png")
   r <- run_ahk_object$new()
   
-  
   # Batting stance
   r$add_SendEvent('wwwww')
-  magick::image_crop(ss, "250x45+1175+435")
-  battingstance <- edit_player_read_ocr_objects$batting_stance$ocr(ss, "250x45+1175+435")
-  if (!is.na(battingstance)) {
-    r$add("SetKeyDelay 175, 40 ; slower for stance")
-    r$add(adjustLRcharlist(battingstance, toupper(names(batter_stance_options[1])), 
-                           char_list = toupper(names(batter_stance_options))))
-    r$add("SetKeyDelay 75, 40 ; slower for stance")
-  } else {
-    something_failed <- FALSE
+  if (is_editable) {
+    # magick::image_crop(ss, "250x45+1175+435")
+    battingstance <- edit_player_read_ocr_objects$batting_stance$ocr(ss, "250x45+1175+435")
+    if (!is.na(battingstance)) {
+      r$add("SetKeyDelay 175, 40 ; slower for stance")
+      r$add(adjustLRcharlist(battingstance, toupper(names(batter_stance_options[1])), 
+                             char_list = toupper(names(batter_stance_options))))
+      r$add("SetKeyDelay 75, 40 ; slower for stance")
+    } else {
+      something_failed <- TRUE
+    }
+    rm(battingstance)
   }
-  rm(battingstance)
   
   # Contact vs RHP
   r$add_SendEvent('s')
   # magick::image_crop(ss, "80x45+1260+508")
   ConR <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+508")
   if (!is.na(ConR)) {
-    r$add(adjustLRapprox(ConR, 0, minval=0,
-                         maxval=100, careful=FALSE))
+    r$add(adjustLRapprox(ConR, if (is_editable) {25} else {0},
+                         minval=0, maxval=100, careful=FALSE))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(ConR)
   
@@ -467,7 +489,7 @@ zero_one_player <- function(add_at_end=NULL,
     r$add(adjustLRapprox(ConL, 0, minval=0,
                          maxval=100, careful=FALSE))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(ConL)
   
@@ -479,7 +501,7 @@ zero_one_player <- function(add_at_end=NULL,
     r$add(adjustLRapprox(PowR, 0, minval=0,
                          maxval=100, careful=FALSE))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(PowR)
   
@@ -491,7 +513,7 @@ zero_one_player <- function(add_at_end=NULL,
     r$add(adjustLRapprox(PowL, 0, minval=0,
                          maxval=100, careful=FALSE))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(PowL)
   
@@ -508,10 +530,10 @@ zero_one_player <- function(add_at_end=NULL,
   # magick::image_crop(ss, "80x45+1260+508")
   ConR <- edit_player_read_ocr_objects$reg_cts$ocr(ss, "80x45+1260+508")
   if (!is.na(ConR)) {
-    r$add(adjustLRcts(ConR, 0, minval=0,
-                      maxval=100))
+    r$add(adjustLRcts(ConR, if (is_editable) {25} else {0},
+                      minval=0, maxval=100))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(ConR)
   
@@ -523,7 +545,7 @@ zero_one_player <- function(add_at_end=NULL,
     r$add(adjustLRcts(ConL, 0, minval=0,
                       maxval=100))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(ConL)
   
@@ -535,7 +557,7 @@ zero_one_player <- function(add_at_end=NULL,
     r$add(adjustLRcts(PowR, 0, minval=0,
                       maxval=100))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(PowR)
   
@@ -547,7 +569,7 @@ zero_one_player <- function(add_at_end=NULL,
     r$add(adjustLRcts(PowL, 0, minval=0,
                       maxval=100))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(PowL)
   
@@ -558,7 +580,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(bunting)) {
     r$add(adjustLRdiscrete(bunting, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(bunting)
   
@@ -577,7 +599,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(platediscipline)) {
     r$add(adjustLRdiscrete(platediscipline, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(platediscipline)
   
@@ -588,7 +610,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(durability)) {
     r$add(adjustLRdiscrete(durability, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(durability)
   
@@ -599,7 +621,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(speed)) {
     r$add(adjustLRcts(speed, 0, minval=0, maxval=99))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(speed)
   
@@ -610,7 +632,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(stealingtendency)) {
     r$add(adjustLRdiscrete(stealingtendency, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(stealingtendency)
   
@@ -621,7 +643,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(brability)) {
     r$add(adjustLRdiscrete(brability, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(brability)
   
@@ -641,7 +663,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(fielding)) {
     r$add(adjustLRdiscrete(fielding, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(fielding)
   
@@ -652,7 +674,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(range1)) {
     r$add(adjustLRdiscrete(range1, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(range1)
   
@@ -663,7 +685,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(throwstrength)) {
     r$add(adjustLRdiscrete(throwstrength, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(throwstrength)
   
@@ -674,7 +696,7 @@ zero_one_player <- function(add_at_end=NULL,
   if (!is.na(throwacc)) {
     r$add(adjustLRdiscrete(throwacc, 0))
   } else {
-    something_failed <- FALSE
+    something_failed <- TRUE
   }
   rm(throwacc)
   
@@ -683,7 +705,7 @@ zero_one_player <- function(add_at_end=NULL,
   rm(r, ss)
   
   # Bat tendencies ----
-  
+  if (is_editable) {
   # Loop over FB/Curve/Slider
   
   for (i in 1:3) {
@@ -699,7 +721,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(TakeL)) {
       r$add(adjustLRdiscrete(TakeL, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(TakeL)
     
@@ -710,7 +732,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(TakeR)) {
       r$add(adjustLRdiscrete(TakeR, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(TakeR)
     
@@ -721,7 +743,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(MissL)) {
       r$add(adjustLRdiscrete(MissL, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(MissL)
     
@@ -732,7 +754,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(MissR)) {
       r$add(adjustLRdiscrete(MissR, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(MissR)
     
@@ -743,7 +765,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(ChaseL)) {
       r$add(adjustLRdiscrete(ChaseL, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(ChaseL)
     
@@ -763,7 +785,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(ChaseR)) {
       r$add(adjustLRdiscrete(ChaseR, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(ChaseR)
     
@@ -776,6 +798,9 @@ zero_one_player <- function(add_at_end=NULL,
     rm(r, ss)
     
   }; rm(i)
+  } else {
+    quick_run_ahk_SendEvent('9sssss')
+  }
   
   # Hot/Cold Zones ----
   # Leave existing players alone
@@ -802,7 +827,7 @@ zero_one_player <- function(add_at_end=NULL,
         if (!is.na(HotCold)) {
           r$add(adjustLRcharlist(HotCold, "NEUTRAL", char_list = c('COLD', 'NEUTRAL', 'HOT')))
         } else {
-          something_failed <- FALSE
+          something_failed <- TRUE
         }
         rm(HotCold)
       }; rm(j)
@@ -824,7 +849,7 @@ zero_one_player <- function(add_at_end=NULL,
         if (!is.na(HotCold)) {
           r$add(adjustLRcharlist(HotCold, "NEUTRAL", char_list = c('COLD', 'NEUTRAL', 'HOT')))
         } else {
-          something_failed <- FALSE
+          something_failed <- TRUE
         }
         rm(HotCold)
       }; rm(j)
@@ -838,7 +863,9 @@ zero_one_player <- function(add_at_end=NULL,
       r$run_ahk('zero_one_player', kill_before=FALSE)
       rm(r, ss)
     }; rm(i)
-  }
+  } else {
+    quick_run_ahk_SendEvent('99')
+  } # end is_editable
   
   # Pitcher ----
   if (is_pitcher) {
@@ -849,17 +876,19 @@ zero_one_player <- function(add_at_end=NULL,
     
     # Pitcher delivery
     r$add_SendEvent('wwwww')
-    # magick::image_crop(ss, "250x45+1175+435")
-    pitcherdelivery <- edit_player_read_ocr_objects$pitcher_delivery$ocr(ss, "250x45+1175+435")
-    if (!is.na(pitcherdelivery)) {
-      r$add("SetKeyDelay 175, 40 ; slower for pdel")
-      r$add(adjustLRcharlist(pitcherdelivery, toupper(names(pitcher_delivery_options[1])), 
-                             char_list = toupper(names(pitcher_delivery_options))))
-      r$add("SetKeyDelay 75, 40 ; slower for pdel")
-    } else {
-      something_failed <- FALSE
-    }
-    rm(pitcherdelivery)
+    if (is_editable) {
+      # magick::image_crop(ss, "250x45+1175+435")
+      pitcherdelivery <- edit_player_read_ocr_objects$pitcher_delivery$ocr(ss, "250x45+1175+435")
+      if (!is.na(pitcherdelivery)) {
+        r$add("SetKeyDelay 175, 40 ; slower for pdel")
+        r$add(adjustLRcharlist(pitcherdelivery, toupper(names(pitcher_delivery_options[1])), 
+                               char_list = toupper(names(pitcher_delivery_options))))
+        r$add("SetKeyDelay 75, 40 ; slower for pdel")
+      } else {
+        something_failed <- TRUE
+      }
+      rm(pitcherdelivery)
+    } # end is_editable
     
     # Stamina
     r$add_SendEvent('s')
@@ -869,7 +898,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRapprox(stamina, 1, minval=1,
                            maxval=99, careful=FALSE))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(stamina)
     
@@ -880,7 +909,7 @@ zero_one_player <- function(add_at_end=NULL,
     if (!is.na(pickoff)) {
       r$add(adjustLRdiscrete(pickoff, 0))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(pickoff)
     
@@ -892,7 +921,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRapprox(fbcontrol, 0, minval=0,
                            maxval=100, careful=FALSE))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(fbcontrol)
     
@@ -904,7 +933,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcts(fbvelo, 77, minval=77,
                         maxval=101))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(fbvelo)
     
@@ -926,7 +955,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcts(stamina, 1, minval=1,
                         maxval=99))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(stamina)
     
@@ -938,7 +967,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcts(fbcontrol, 0, minval=0,
                         maxval=100))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(fbcontrol)
     
@@ -953,14 +982,16 @@ zero_one_player <- function(add_at_end=NULL,
                              char_list = toupper(pitch_order)))
       # Nerf changeup
       # Movement to 0
-      r$add_SendEvent("saaaaa")
+      r$add_SendEvent("saaaaass")
+      # Control down to 2-3
+      r$add(adjustLRapprox(50, 3, minval=0, maxval=100, careful=F))
     } else {
-      r$add_SendEvent("s")
-      something_failed <- FALSE
+      r$add_SendEvent("sss")
+      something_failed <- TRUE
     }
     rm(pitch2)
     
-    r$add_SendEvent("sssssssssw")
+    r$add_SendEvent("sssssssw")
     r$run_ahk('zero_one_player', kill_before=FALSE)
     rm(r, ss)
     
@@ -977,7 +1008,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcharlist(pitch3, "NONE", 
                              char_list = toupper(c("NONE", pitch_order)), cts = T))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(pitch3)
     
@@ -990,7 +1021,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcharlist(pitch4, "NONE", 
                              char_list = toupper(c("NONE", pitch_order)), cts = T))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(pitch4)
     
@@ -1011,7 +1042,7 @@ zero_one_player <- function(add_at_end=NULL,
       r$add(adjustLRcharlist(pitch5, "NONE", 
                              char_list = toupper(c("NONE", pitch_order)), cts = T))
     } else {
-      something_failed <- FALSE
+      something_failed <- TRUE
     }
     rm(pitch5)
     
@@ -1033,7 +1064,7 @@ zero_one_player <- function(add_at_end=NULL,
   #   r$add(adjustLRcts(, 1, minval=1,
   #                     maxval=))
   # } else {
-  #   something_failed <- FALSE
+  #   something_failed <- TRUE
   # }
   # rm()
   # "
@@ -1044,15 +1075,21 @@ zero_one_player <- function(add_at_end=NULL,
   cat("zero_one_player finished after", 
       diff(c(zero_start_time, Sys.time()), units='sec'),
       "seconds", "\n")
-  stop('done')
+  # browser('done')
+  r <- run_ahk_object$new()
   if (something_failed) {
-    r$add_SendEvent("isk")
+    # quick_run_ahk_SendEvent("isk")
+    r$add('SetKeyDelay 295, 40  ; 75ms between keys, 25ms between down/up
+           SendEvent "isk"')
   } else {
-    r$add_SendEvent("usk")
+    # quick_run_ahk_SendEvent("usk")
+    r$add('SetKeyDelay 295, 40  ; 75ms between keys, 25ms between down/up
+           SendEvent "usk"')
   }
   r$run_ahk('zero_one_player', kill_after=TRUE) # Last one, kill after
   rm(r)
-  
+  # Give it time to load the previous screen
+  Sys.sleep(2)
   
   cat("zero_one_player finished after", 
       diff(c(zero_start_time, Sys.time()), units='sec'),

@@ -137,6 +137,7 @@ read_ocr_object <- R6::R6Class(
       
       # label_match <- matching_image_label(img_crop)
       if (!is.na(label_match)) {
+        # browser()
         cat("FOUND MATCH IN LABELED IMAGES!!!!!", label_match, "\n")
         
         if (self$cts || self$discrete) {

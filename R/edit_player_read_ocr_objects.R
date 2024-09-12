@@ -1,3 +1,10 @@
+if (!exists("pitch_order")) {
+  source("./R/helpers.R")
+}
+if (!exists('read_ocr_object')) {
+  source("./R/read_ocr_object.R")
+}
+
 # Create a list of these objects. Go through them all at the end.
 edit_player_read_ocr_objects <- list(
   position=read_ocr_object$new(name="position", char=T, 

@@ -197,10 +197,26 @@ if (F) {
 }
 adjustLRapprox <- function(start, goal, minval, maxval,
                            keyright='d', keyleft='a', careful=TRUE) {#browser()
-  diff <- abs(start - goal)
-  dist_from_edge <- ifelse(start < goal, 
-                           maxval - goal,
-                           goal - minval)
+  diff_direct <- abs(start - goal)
+  diff_around <- if (start < goal) {
+    start - minval + 1 + maxval - goal
+  } else {
+    goal - minval + 1 + maxval - start
+  }
+  # diff <- abs(start - goal)
+  # dist_from_edge <- ifelse(start < goal, 
+  #                          maxval - goal,
+  #                          goal - minval)
+  dist_from_edge <- min(maxval - goal, goal - minval)
+  diff <- min(diff_direct, diff_around)
+  key <- case_when(
+    diff_direct <= diff_around && start <= goal ~ keyright,
+    diff_direct <= diff_around && start > goal  ~ keyleft,
+    diff_direct >  diff_around && start <= goal ~ keyleft,
+    diff_direct >  diff_around && start > goal ~ keyright,
+    TRUE ~ "error")
+  stopifnot(key != "error")
+  
   if (!careful) {
     dist_from_edge <- 100
   }
@@ -210,7 +226,7 @@ adjustLRapprox <- function(start, goal, minval, maxval,
   }
   # Do approx
   hold_length <- round((diff --3.66572375)/  0.02399106, 3)
-    key <- ifelse(goal > start, keyright, keyleft)
+  # key <- ifelse(goal > start, keyright, keyleft)
   paste0('
     SetKeyDelay 75, ', hold_length, '  ; Hold for X seconds to move fast than
                           ; repeated presses, should get within 1, need to be
@@ -224,8 +240,13 @@ if (F) {
   cat(adjustLRapprox(50, 95, minval=0, maxval=100))
   cat(adjustLRapprox(50, 45, minval=0, maxval=100))
   cat(adjustLRapprox(50, 1, minval=0, maxval=100))
+  cat(adjustLRapprox(50, 1, minval=0, maxval=100, careful=F))
+  cat(adjustLRapprox(54, 1, minval=0, maxval=100, careful=F))
   cat(adjustLRapprox(50, 90, minval=0, maxval=100))
   cat(adjustLRapprox(50, 70, minval=0, maxval=100))
+  cat(adjustLRapprox(0, 100, minval=0, maxval=100))
+  cat(adjustLRapprox(97, 0, minval=0, maxval=100, careful=F))
+  cat(adjustLRapprox(90, 10, minval=0, maxval=100, careful=F))
 }
 
 # Go either way. cts means 0 to 100 scale
@@ -403,10 +424,10 @@ MVP_org_order <- c('LAA', 'HOU', 'OAK', 'TOR', 'ATL', 'MIL', 'STL',
 # OOTP_team_id_order ----
 # team_id for the MLB teams
 OOTP_team_id_order <- c('ARI', 'ATL', 'BAL', 'BOS', 'CHW', 'CHC', 'CIN',
-                    'CLE', 'COL', 'DET', 'MIA', 'HOU', 'KCR', 'LAA',
-                    'LAD', 'MIL', 'MIN', 'NYY', 'NYM', 'OAK', 'PHI',
-                    'PIT', 'SDP', 'SEA', 'SFG', 'STL', 'TBR', 'TEX',
-                    'TOR', 'WAS')
+                        'CLE', 'COL', 'DET', 'MIA', 'HOU', 'KCR', 'LAA',
+                        'LAD', 'MIL', 'MIN', 'NYY', 'NYM', 'OAK', 'PHI',
+                        'PIT', 'SDP', 'SEA', 'SFG', 'STL', 'TBR', 'TEX',
+                        'TOR', 'WAS')
 # OOTP_MLB_team_order ----
 # Order of the MLB teams from the OOTP spreadsheet
 OOTP_MLB_team_order <- c('BAL', 'BOS', 'NYY', 'TBR', 'TOR',
