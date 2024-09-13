@@ -108,6 +108,7 @@ zero_free_agents <- function(nplayers=25, nskip=0) {
     beepr::beep(2)
   }, add=T)
   
+  nfails <- nskip
   
   for (i in 1:nplayers) {
     cat("zero_rosters for player", i, ", saving screenshot\n")
@@ -132,9 +133,9 @@ zero_free_agents <- function(nplayers=25, nskip=0) {
     
     # Need to reset to top rated player after zeroing one player.
     # FA page is slow to load.
-    quick_run_ahk_SendEvent(
+    quick_run_ahk (
       '
-    Sleep 6000 ; Wait for FA page to load
+    Sleep 7000 ; Wait for FA page to load
     SendEvent "07" ; Reset to top of FA list
     Sleep 4000 ; Wait for FA page to load
   '
@@ -151,7 +152,7 @@ zero_free_agents <- function(nplayers=25, nskip=0) {
   cat("Finished zero_free_agents", as.character(Sys.time()), "\n")
   cat("Ran for", diff(c(start_time, Sys.time()), units='sec'), "\n")
 }
-if (F) {
+if (F) { ## Test ----
   cat("Switch windows now", "\n")
   Sys.sleep(2)
   zero_free_agents(nplayers = 400)

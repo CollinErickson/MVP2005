@@ -166,12 +166,12 @@ ootpdf$Position %>% table
 ootpdf <- ootpdf %>% mutate(
   "MVP_First Position"=case_when(
     Position > 10.5 &
-    ((Stamina > 88 & level_id==1) |
-       (Stamina > 64 & level_id==2) |
-       (Stamina > 60 & level_id==3) |
-       (Stamina > 58 & level_id==4) |
-       (Stamina > 56 & level_id==5) |
-       (Stamina > 54 & level_id > 5)) ~ 'SP',
+      ((Stamina > 88 & level_id==1) |
+         (Stamina > 64 & level_id==2) |
+         (Stamina > 60 & level_id==3) |
+         (Stamina > 58 & level_id==4) |
+         (Stamina > 56 & level_id==5) |
+         (Stamina > 54 & level_id > 5)) ~ 'SP',
     Position > 10.5 ~ 'RP',
     # 11/12/13 have some weird stamina that mess up the distribution
     # Position==11 ~ 'SP',
@@ -203,6 +203,8 @@ ootpdf <- ootpdf %>% mutate(
     TRUE ~ ''
   )
   # ) %>% select(`MVP_First Position`, `MVP_Second Position`) %>% table # to check
+) %>% mutate(
+  IsPitcher=Position>10.5
 )
 
 
@@ -509,18 +511,81 @@ ootpdf <- ootpdf %>%
   left_join(MLB_prospectsdf2 %>%
               select(-bbref_id), by='bbrefminors_id', suffix = c("","_MLBP"))
 
-# Heatmaps
-# TODO
+# 40 man roster ----
+source("./R/bbref_40manrosters.R")
+ootpdf <- ootpdf %>% left_join(
+  tibble(bbref_id=unlist(bbref_40man), on40manroster=TRUE),
+  c("bbref_id")
+) %>% mutate(
+  on40manroster=coalesce(on40manroster, FALSE)
+)
+
+# Heatmaps ----
+# Give num hot/cold based on Contact+Power for that hand
+for (hand in c("L", "R")) {
+  ootpdf$handbatavg <- (ootpdf$`MVP_Contact vs LHP` + ootpdf$`MVP_Power vs LHP`) / 2
+  ootpdf$numhot <- case_when(
+    ootpdf$handbatavg > 92 ~ 8,
+    ootpdf$handbatavg > 88 ~ 7,
+    ootpdf$handbatavg > 82 ~ 6,
+    ootpdf$handbatavg > 76 ~ 5,
+    ootpdf$handbatavg > 70 ~ 4,
+    ootpdf$handbatavg > 64 ~ 3,
+    ootpdf$handbatavg > 58 ~ 2,
+    ootpdf$handbatavg > 30 ~ 1,
+    TRUE ~ 0
+  )
+  ootpdf$numcold <- case_when(
+    ootpdf$handbatavg > 94 ~ 0,
+    ootpdf$handbatavg > 86 ~ 1,
+    ootpdf$handbatavg > 72 ~ 2,
+    ootpdf$handbatavg > 50 ~ 3,
+    ootpdf$handbatavg > 35 ~ 4,
+    ootpdf$handbatavg > 28 ~ 5,
+    ootpdf$handbatavg > 22 ~ 6,
+    ootpdf$handbatavg > 15 ~ 7,
+    ootpdf$handbatavg > 10 ~ 8,
+    TRUE ~ 9
+  )
+  stopifnot(between(ootpdf$numhot + ootpdf$numcold, 1, 9))
+  heatmap_colname <- paste0("MVP_heatmap_v", hand) 
+  ootpdf[heatmap_colname] <- NA
+  for (i in 1:nrow(ootpdf)) {
+    hotcoldvec <- sample(
+      c(
+        rep('H',  ootpdf$numhot[i]),
+        rep('C', ootpdf$numcold[i]),
+        rep('N', 9-ootpdf$numhot[i] - ootpdf$numcold[i])),
+      9,
+      replace=FALSE)
+    hotcoldvecstr <- paste0(hotcoldvec, collapse='')
+    stopifnot(nchar(hotcoldvecstr) == 9)
+    ootpdf[i, heatmap_colname] <- hotcoldvecstr
+  }; rm(i, hotcoldvec)
+  ootpdf <- ootpdf %>% select(-handbatavg, -numhot, -numcold)
+}; rm(hand, heatmap_colname)
+
 
 # MVP OverallEst
 ootpdf <- ootpdf %>% 
   mutate(MVP_Stamina=ifelse(`MVP_First Position`=="SP",
                             `MVP_Stamina SP`, `MVP_Stamina RP`)) %>% 
-  select(-`MVP_Stamina SP`, -`MVP_Stamina RP`) %>% 
+  # select(-`MVP_Stamina SP`, -`MVP_Stamina RP`) %>% 
   mutate(MVP_OverallEst=case_when(
-    Position < 10.5 ~ (`MVP_Contact vs LHP`+`MVP_Contact vs RHP` +
-                         `MVP_Power vs LHP`+`MVP_Power vs RHP` +
-                         MVP_Speed)/5,
+    Position < 10.5 ~ (`MVP_Contact vs LHP` +
+                         `MVP_Contact vs RHP` +
+                         `MVP_Power vs LHP` +
+                         `MVP_Power vs RHP` +
+                         MVP_Speed +
+                         .3*MVP_Fielding +
+                         .3*MVP_Range +
+                         .3*`MVP_Throwing Accuracy` +
+                         .3*`MVP_Throwing Strength` +
+                         .3*`MVP_Plate Discipline` + 
+                         .1*MVP_Durability +
+                         .2*MVP_Bunting +
+                         .2*`MVP_Baserunning Ability`
+    ) / 7 * 1.18, # 1.18 to boost hitters relative to pitchers
     Position > 10.5 ~ (ifelse(`MVP_First Position`=="SP",MVP_Stamina, 
                               pmin(99,MVP_Stamina*100/60)) + 
                          `MVP_Fastball Control` + `MVP_Fastball Velocity` +
@@ -529,7 +594,8 @@ ootpdf <- ootpdf %>%
                               `MVP_Changeup Control`, 0, na.rm=T) +
                          pmax(`MVP_Slider Movement`, `MVP_Splitter Movement`,
                               `MVP_Curveball Movement`, `MVP_Sinker Movement`,
-                              `MVP_Changeup Movement`, 0, na.rm=T)) / 5,
+                              `MVP_Changeup Movement`, 0, na.rm=T)) / 5 *
+      ifelse(`MVP_First Position`=="SP", 1, .9), # Downgrade RP
     TRUE ~ NA
   ))# %>% arrange(-MVP_OverallEst) %>% 
 # relocate(MVP_OverallEst, LastName, FirstName,
@@ -540,24 +606,43 @@ ootpdf <- ootpdf %>%
 # Pick which to include ----
 # Assign to teams and orgs, pick which will be on roster vs left out
 # Keep all players at MLB or AAA, all players on top 30 prospects at least 18 yo
-# TODO
 ootpdf <- ootpdf %>% 
-  group_by(org_id, IsPitcher=Position>10.5) %>% 
+  # When doing 100 per org
+  group_by(org_id, IsPitcher) %>% 
   arrange(MLB_prospect_rank, ifelse(level_id < 2.5, 0, 1), -MVP_OverallEst) %>% 
   mutate(MVP_include = 1:n() <= 50) %>% 
   arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
   mutate(MVP_org_position_rank=1:n()) %>% 
+  ungroup %>% 
+  # When creating in order without certain total count
+  group_by(org_id, IsPitcher) %>% 
+  arrange(ifelse(MVP_include,0,1),
+          # ifelse(level_id<1.5, -MVP_OverallEst, 1e3), # MLB players first
+          ifelse(on40manroster, -MVP_OverallEst, 1e3), # 40man players first
+          ifelse(is.na(MLB_prospect_rank), 100, MLB_prospect_rank), # Keep prospects
+          -MVP_OverallEst # Keep best players
+  ) %>% 
+  mutate(MVP_org_position_create_rank=1:n()) %>% 
+  ungroup %>% 
+  group_by(IsPitcher) %>% 
+  arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
+  mutate(MVP_MLB_position_rank=1:n()) %>% 
   ungroup
 if (F) {
   ootpdf %>% group_by(org_id) %>% summarize(n(), sum(MVP_include)) %>% print(n=100)
   ootpdf %>%  filter(org_id==3, !IsPitcher) %>%
     relocate(MVP_OverallEst, MLB_prospect_rank, MVP_include, 
              MVP_org_position_rank, FirstName, LastName) %>% View
+  View(ootpdf %>% filter(org_id==3) %>% arrange(MVP_org_position_create_rank, IsPitcher) %>% 
+    relocate(MVP_org_position_create_rank, MVP_OverallEst, on40manroster, MLB_prospect_rank, FirstName, LastName))
 }
 stopifnot(
   ootpdf %>% filter(team_id>0, MVP_include) %>% group_by(org_id) %>% 
     count %>% pull(n) == rep(100,30)
 )
+
+
+
 # Assign to teams ----
 ootpdf <- ootpdf %>% 
   mutate(MVP_level_id = case_when(
@@ -586,10 +671,10 @@ ootpdf <- ootpdf %>% mutate(MLB_prospect_rank2=coalesce(MLB_prospect_rank, 100))
     MLB_prospect_rank2 <=9  ~ 4,
     MLB_prospect_rank2 <=18 ~ 3,
     MLB_prospect_rank2 <=30 ~ 2,
-    MVP_org_position_rank <=  2 ~ 5, # Twice as many (pitchers and batters)
-    MVP_org_position_rank <=  5 ~ 4,
-    MVP_org_position_rank <= 10 ~ 3,
-    MVP_org_position_rank <= 20 ~ 2,
+    MVP_MLB_position_rank <=  2*30 ~ 5, # Twice as many (pitchers and batters)
+    MVP_MLB_position_rank <=  5*30 ~ 4,
+    MVP_MLB_position_rank <= 10*30 ~ 3,
+    MVP_MLB_position_rank <= 20*30 ~ 2,
     TRUE ~ 1
   ))
 
@@ -668,13 +753,23 @@ ootpdf$`MVP_Changeup Movement`[ootpdf$Npitches_MVP == 1] <- 50
 ootpdf$`MVP_Changeup Velocity`[ootpdf$Npitches_MVP == 1] <- 76
 ootpdf$Npitches_MVP[ootpdf$Npitches_MVP == 1] <- 2
 
+# MakeFromCreate ----
+# Need to make Ohtani from create, not editing a player, so that he
+# can be edited to be non-pitcher if wanted.
+# Also putting Judge here to avoid height match issue.
+ootpdf$MVP_MakeFromCreate <- F
+MakeFromCreate_bbrefminors_id <- c('judge-001aar', 'otani-000sho')
+ootpdf$MVP_MakeFromCreate[
+  ootpdf$bbrefminors_id %in% MakeFromCreate_bbrefminors_id] <- TRUE
+
 # MVPdf ----
 # Now prepare MVP df
 # Keep columns that start with "MVP_" and others specified
 MVPdf <- ootpdf[,c(
   colnames(ootpdf)[grepl("MVP_", colnames(ootpdf))],
-  'bbref_id', 'bbrefminors_id'
-)]
+  'bbref_id', 'bbrefminors_id', 'MLB Team Name'
+)] %>% 
+  select(-`MVP_Stamina SP`, -`MVP_Stamina RP`)
 # Remove "MVP_" from start of colnames where applicable
 colnames(MVPdf) <- colnames(MVPdf) %>% 
   {ifelse(grepl("MVP_", .),
