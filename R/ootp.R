@@ -608,12 +608,12 @@ ootpdf <- ootpdf %>%
 # Keep all players at MLB or AAA, all players on top 30 prospects at least 18 yo
 ootpdf <- ootpdf %>% 
   # When doing 100 per org
-  group_by(org_id, IsPitcher) %>% 
-  arrange(MLB_prospect_rank, ifelse(level_id < 2.5, 0, 1), -MVP_OverallEst) %>% 
-  mutate(MVP_include = 1:n() <= 50) %>% 
-  arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
-  mutate(MVP_org_position_rank=1:n()) %>% 
-  ungroup %>% 
+  # group_by(org_id, IsPitcher) %>% 
+  # arrange(MLB_prospect_rank, ifelse(level_id < 2.5, 0, 1), -MVP_OverallEst) %>% 
+  # mutate(MVP_include = 1:n() <= 50) %>% 
+  # arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
+  # mutate(MVP_org_position_rank=1:n()) %>% 
+  # ungroup %>% 
   # When creating in order without certain total count
   group_by(org_id, IsPitcher) %>% 
   arrange(ifelse(MVP_include,0,1),

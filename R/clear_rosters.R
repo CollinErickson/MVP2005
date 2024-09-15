@@ -1,5 +1,6 @@
 # Clear rosters for one org
 # Use this to move all players from a roster to the Free Agent list
+stop("use clear_rosters2.R")
 
 clear_one_org <- function(norgs=1, nlevels=4) {
   

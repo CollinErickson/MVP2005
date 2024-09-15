@@ -127,7 +127,7 @@ zero_free_agents <- function(nplayers=25, nskip=0) {
     
     stopifnot(zero_out %in% c("success", "failure", "already_done"))
     
-    if (zero_out == 'failure') {
+    if (zero_out %in% c('failure', 'already_done')) {
       nfails <- nfails + 1
     }
     
