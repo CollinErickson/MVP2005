@@ -421,6 +421,13 @@ MVP_org_order <- c('LAA', 'HOU', 'OAK', 'TOR', 'ATL', 'MIL', 'STL',
                    'MIA', 'NYM', 'WAS', 'BAL', 'SDP', 'PHI', 'PIT',
                    'TEX', 'BOS', 'CIN', 'COL', 'KCR', 'DET', 'MIN',
                    'CHW', 'NYY')
+# MVP_org_order2 ----
+# Order the teams in MVP show up (on the edit player page)
+MVP_org_order2 <- c('BOS', 'CHC', 'CHW', 'CIN', 'CLE', 'COL', 'DET',
+                    'MIA', 'HOU', 'KCR', 'LAD', 'MIL', 'MIN', 'NYM',
+                    'NYY', 'OAK', 'PHI', 'PIT', 'SDP', 'SFG', 'SEA',
+                    'STL', 'TBR', 'TEX', 'TOR', 'WAS', 'LAA', 'ARI',
+                    'ATL', 'BAL')
 # OOTP_team_id_order ----
 # team_id for the MLB teams
 OOTP_team_id_order <- c('ARI', 'ATL', 'BAL', 'BOS', 'CHW', 'CHC', 'CIN',

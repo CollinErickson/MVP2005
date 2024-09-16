@@ -28,7 +28,7 @@ Interrupted := 0
   	; first name
 	SendEvent "k" ; Enter first name
 	Sleep 1000
-    SendEvent "lllll" ; delete "sskkkkk"
+    ; SendEvent "lllll" ; delete "sskkkkk"
   
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -36,12 +36,13 @@ Interrupted := 0
   }
 
     SendEvent "ds" ; 	move from done to z
-  SendEvent "wk" ; 	a
-  SendEvent "wddddddk" ; 	u
-  SendEvent "saaaaak" ; 	s
-  SendEvent "wdddk" ; 	t
-  SendEvent "dddk" ; 	i
-  SendEvent "ssaak" ; 	n
+  SendEvent "wddddk" ; 	g
+  SendEvent "aaaak" ; 	a
+  SendEvent "wdddk" ; 	r
+  SendEvent "k" ; 	r
+  SendEvent "ak" ; 	e
+  SendEvent "ddk" ; 	t
+  SendEvent "k" ; 	t
 	SendEvent "u" ; 	Done
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -53,7 +54,7 @@ Interrupted := 0
 	; last name
 	SendEvent "sk" ; 	enter last name
 	Sleep 1000
-    SendEvent "lllll" ; delete "sskkkkk"
+    ; SendEvent "lllll" ; delete "sskkkkk"
 	
   
   If (Interrupted > 0) {
@@ -62,11 +63,14 @@ Interrupted := 0
   }
 
   
-  SendEvent "wwaaaak" ; 	w
-  SendEvent "dk" ; 	e
-  SendEvent "sddddddk" ; 	l
-  SendEvent "k" ; 	l
-  SendEvent "aaaaaaak" ; 	s
+  SendEvent "aaak" ; 	w
+  SendEvent "sddddk" ; 	h
+  SendEvent "wddk" ; 	i
+  SendEvent "aaak" ; 	t
+  SendEvent "sddddk" ; 	l
+  SendEvent "wk" ; 	o
+  SendEvent "ssaaaaaak" ; 	c
+  SendEvent "wdddddk" ; 	k
 	SendEvent "u" ; 	Done
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -83,7 +87,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "a"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -100,7 +104,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
+    SendEvent "aaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -117,7 +121,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddd"
+    SendEvent "dd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -129,13 +133,6 @@ Interrupted := 0
 	; First position
 	SendEvent "s" ; 	 move to first position
   
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
-    SendEvent "ddddddddd"
-
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -171,13 +168,6 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "d"
-
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
   
 
 	; Career potential
@@ -188,7 +178,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "d"
+    SendEvent "aa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -205,8 +195,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "d"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -215,7 +204,7 @@ Interrupted := 0
   
 
 	; Appearance tab
-	SendEvent "9" ; 	 move to throws
+	SendEvent "9" ; 	 move to appearance tab
   
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -231,7 +220,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddddddddddddd"
+    SendEvent "ddddddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -243,13 +232,6 @@ Interrupted := 0
 	; Height
 	SendEvent "s" ; 	 move to Height
   
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
-    SendEvent "dd"
-
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -275,8 +257,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -292,8 +273,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddd"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -309,7 +289,8 @@ Interrupted := 0
     return      
   }
 
-  
+    SendEvent "dddd"
+
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -325,19 +306,8 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaa"
+    SendEvent "aa"
 
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
-  
-
-	; Body build tab
-	SendEvent "9" ; 	 move to body build tab
-	Sleep 40 ;
-  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -374,7 +344,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaaaaaaaaaaaaaaaaaaaaaa"
+    SendEvent "aaaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -384,6 +354,23 @@ Interrupted := 0
   
 
 	; Contact v R
+	SendEvent "s" ; 	 move to Contact v R
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "aaaaaa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Contact v L
 	SendEvent "s" ; 	 move to Contact v R
   
   If (Interrupted > 0) {
@@ -405,23 +392,6 @@ Interrupted := 0
 
   
 
-	; Contact v L
-	SendEvent "s" ; 	 move to Contact v R
-  
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
-    SendEvent "dddddddd"
-
-  If (Interrupted > 0) {
-    SoundBeep(523, 500)
-    return      
-  }
-
-  
-
 	; Power v R
 	SendEvent "s" ; 	 move to Power v R
   
@@ -431,7 +401,7 @@ Interrupted := 0
   }
 
   
-    SetKeyDelay 75, 1403.261  ; Hold for X seconds to move fast than
+    SetKeyDelay 75, 1361.579  ; Hold for X seconds to move fast than
                           ; repeated presses, should get within 1, need to be
                           ; running PCSX2 at 2x speed
     SendEvent "d" ; Set movement to 0
@@ -453,7 +423,7 @@ Interrupted := 0
   }
 
   
-    SetKeyDelay 75, 1028.121  ; Hold for X seconds to move fast than
+    SetKeyDelay 75, 1444.943  ; Hold for X seconds to move fast than
                           ; repeated presses, should get within 1, need to be
                           ; running PCSX2 at 2x speed
     SendEvent "d" ; Set movement to 0
@@ -474,7 +444,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "ddddddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -491,7 +461,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddd"
+    SendEvent "dd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -508,7 +478,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddddd"
+    SendEvent "ddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -525,8 +495,13 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddddd"
-
+  
+    SetKeyDelay 75, 2111.858  ; Hold for X seconds to move fast than
+                          ; repeated presses, should get within 1, need to be
+                          ; running PCSX2 at 2x speed
+    SendEvent "d" ; Set movement to 0
+    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -542,7 +517,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddd"
+    SendEvent "ddddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -559,7 +534,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddd"
+    SendEvent "d"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -576,8 +551,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -593,8 +567,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -627,7 +600,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "a"
+    SendEvent "ddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -655,8 +628,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddddd"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -672,8 +644,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "ddd"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -689,7 +660,8 @@ Interrupted := 0
     return      
   }
 
-  
+    SendEvent "a"
+
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -705,7 +677,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -722,7 +694,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
+    SendEvent "a"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -739,7 +711,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aa"
+    SendEvent "a"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -756,8 +728,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddd"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -773,8 +744,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddd"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -790,7 +760,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dd"
+    SendEvent "d"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -807,8 +777,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "d"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -841,7 +810,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaa"
+    SendEvent "aaa"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -858,8 +827,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "dddddddd"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -875,8 +843,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "aaaaaa"
-
+  
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -892,7 +859,7 @@ Interrupted := 0
     return      
   }
 
-    SendEvent "a"
+    SendEvent "ddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)
@@ -909,7 +876,8 @@ Interrupted := 0
     return      
   }
 
-  
+    SendEvent "dd"
+
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -925,7 +893,8 @@ Interrupted := 0
     return      
   }
 
-  
+    SendEvent "a"
+
   If (Interrupted > 0) {
     SoundBeep(523, 500)
     return      
@@ -941,7 +910,581 @@ Interrupted := 0
     return      
   }
 
+    SendEvent "a"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Hot/Cold tab
+	SendEvent "9" ; 	 move to Hot/Cold tab L or R
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Hot/Cold tab
+	SendEvent "9" ; 	 move to Hot/Cold tab L or R
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "a" ; move to cold
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent "s" ; move to next
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitcher tab
+	SendEvent "9" ; 	 move to Pitcher tab
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitcher Delivery
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Stamina
+	    SendEvent "s" ; 	 move to Stamina
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+    SetKeyDelay 75, 1569.99  ; Hold for X seconds to move fast than
+                          ; repeated presses, should get within 1, need to be
+                          ; running PCSX2 at 2x speed
+    SendEvent "a" ; Set movement to 0
+    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pickoff
+	    SendEvent "s" ; 	 move to Pickoff
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
     SendEvent "aaaa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Fastball Control
+	    SendEvent "s" ; 	 move to Fastball Control
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+    SetKeyDelay 75, 1986.812  ; Hold for X seconds to move fast than
+                          ; repeated presses, should get within 1, need to be
+                          ; running PCSX2 at 2x speed
+    SendEvent "a" ; Set movement to 0
+    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Fastball Velocity
+	    SendEvent "s" ; 	 move to Fastball Velocity
+      
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch type
+      	    SendEvent "s" ; 	 move to pitch type
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  SendEvent 'ad' ; clear changeup
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Movement
+      	    SendEvent "s" ; 	 move to Pitch Movement
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Trajectory
+      	    SendEvent "s" ; 	 move to Pitch Trajectory
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "a"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Control
+      	    SendEvent "s" ; 	 move to Pitch Control
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+    SetKeyDelay 75, 2028.494  ; Hold for X seconds to move fast than
+                          ; repeated presses, should get within 1, need to be
+                          ; running PCSX2 at 2x speed
+    SendEvent "d" ; Set movement to 0
+    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Velocity
+      	    SendEvent "s" ; 	 move to Pitch Velocity
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch type
+      	    SendEvent "s" ; 	 move to pitch type
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Movement
+      	    SendEvent "s" ; 	 move to Pitch Movement
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Trajectory
+      	    SendEvent "s" ; 	 move to Pitch Trajectory
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "aa"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Control
+      	    SendEvent "s" ; 	 move to Pitch Control
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+    SetKeyDelay 75, 1903.448  ; Hold for X seconds to move fast than
+                          ; repeated presses, should get within 1, need to be
+                          ; running PCSX2 at 2x speed
+    SendEvent "d" ; Set movement to 0
+    SetKeyDelay 75, 40  ; 75ms between keys, 25ms between down/up
+  
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Velocity
+      	    SendEvent "s" ; 	 move to Pitch Velocity
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch type
+      	    SendEvent "s" ; 	 move to pitch type
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Movement
+      	    SendEvent "s" ; 	 move to Pitch Movement
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Trajectory
+      	    SendEvent "s" ; 	 move to Pitch Trajectory
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Control
+      	    SendEvent "s" ; 	 move to Pitch Control
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "dddddddddddddddddddddddddddddddddddddddddddddddddd"
+
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+  
+
+	; Pitch Velocity
+      	    SendEvent "s" ; 	 move to Pitch Velocity
+            
+  If (Interrupted > 0) {
+    SoundBeep(523, 500)
+    return      
+  }
+
+    SendEvent "ddd"
 
   If (Interrupted > 0) {
     SoundBeep(523, 500)

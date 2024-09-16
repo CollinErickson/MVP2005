@@ -42,6 +42,10 @@ add_SendEvent = function(text, rep=1) {
   ))
   return(invisible(self))
 },
+add_Sleep = function(ms) {
+  stopifnot(ms > 10)
+  self$add(paste0("Sleep ", ms, " ; "))
+},
 run_ahk = function(file_prefix, trigger=TRUE, wait=TRUE, wait_sec=240,
                    kill_before=TRUE, kill_after=FALSE) {
   textcs1=self$out

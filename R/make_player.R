@@ -2,10 +2,13 @@ library(dplyr)
 if (!exists('typeout2')) {
   source("./R/helpers.R")
 }
+if (!exists('is_editable_player')) {
+  source("./R/is_editable_player.R")
+}
 
 # Make one player
 
-make_player_from_row <- function(df) {
+make_player_from_row <- function(df, from_zero=FALSE) {
   stopifnot(is.data.frame(df), nrow(df)==1)
   
   if (file.exists("./autohotkey/make_player_p1_done.txt")) {
@@ -55,6 +58,10 @@ add('
     SendEvent "k"
       Sleep 3000')
 
+if (from_zero) {
+  stopifnot(is_editable_player())
+}
+
 # General Information tab ----
 # First name
 # Enter and Delete name
@@ -62,7 +69,7 @@ add(
   '\t; first name
 	SendEvent "k" ; Enter first name
 	Sleep 1000
-    SendEvent "lllll" ; delete "sskkkkk"
+    ; SendEvent "lllll" ; delete "sskkkkk"
   '
 )
 
@@ -78,7 +85,7 @@ add(
   '\n\n\t; last name
 	SendEvent "sk" ; \tenter last name
 	Sleep 1000
-    SendEvent "lllll" ; delete "sskkkkk"
+    ; SendEvent "lllll" ; delete "sskkkkk"
 	
   '
 )
@@ -95,7 +102,8 @@ add(
 	SendEvent "ss" ; \t move to birth month
   '
 )
-add(adjustLR(df$`Birth Month` - 8))
+add(adjustLRcts(ifelse(from_zero,8,1),
+                df$`Birth Month`, minval=1, maxval=12))
 
 # Birth date (after month to get right number of days)
 
@@ -114,11 +122,18 @@ add(
   '
 )
 # Don't let it wrap around (starts on 1974, from 1961 to 1987)
-add(adjustLR(
-  max(-13,
-      min(13,
-          df$`Birth Year` - 1974 - as.integer(substring(Sys.Date(),
-                                                        1,4)) + 2005))))
+if (from_zero) {
+  add(adjustLRcts(1975,
+                  df$`Birth Year` -  as.integer(substring(Sys.Date(),
+                                                          1,4)) + 2005,
+                  minval=1961, maxval=1987))
+} else {
+  add(adjustLR(
+    max(-13,
+        min(13,
+            df$`Birth Year` - 1974 - as.integer(substring(Sys.Date(),
+                                                          1,4)) + 2005))))
+}
 
 # First position
 add(
@@ -128,7 +143,20 @@ add(
 )
 fpos <- which(first_position_order == df$`First Position`)
 stopifnot(length(fpos) == 1)
-add(adjustLR(fpos - 1))
+if (from_zero) {
+  if (df$`First Position` == "SP") {
+    # Nothing
+  } else if (df$`First Position` == "RP") {
+    add(adjustLR(1))
+  } else if (df$`First Position` == "C") {
+    # Nothing
+  } else {
+    # batter, but not C
+    add(adjustLR(fpos))
+  }
+} else {
+  add(adjustLR(fpos - 1))
+}
 
 # Second position
 add(
@@ -138,29 +166,61 @@ add(
 )
 spos <- which(second_position_order == df$`Second Position`)
 stopifnot(length(spos) <= 1)
-if (length(spos) >= 1) {
-  # If 1B, secondary starts at none
-  if (df$`First Position` == "1B") {
-    if (df$`Second Position` == "C") {
-      add(adjustLR(1))
-    } else {
+
+if (from_zero) {
+  if (length(spos) >= 1) {
+    # If C, secondary starts at None
+    if (df$`First Position` == "C") {
       add(adjustLR(spos - 1))
-    }
-  } else if (df$`First Position` == "C") {
-    # If C, secondary starts at none
-    add(adjustLR(spos - 1))
-  } else if (df$`First Position` %in% c("SP", "RP")) {
-    # If RP/SP, can't have secondary
-  } else {
-    # If 2B to RF, secondary starts at 1B, but it skips their position
-    if (df$`Second Position` == "C") {
-      add(adjustLR(-1))
+    } else if (df$`First Position` %in% c("SP", "RP")) {
+      # If RP/SP, can't have secondary
     } else {
-      fpos_in_spos <- which(second_position_order == df$`First Position`)
-      if (spos < fpos_in_spos) {
-        add(adjustLR(spos - 2))
+      # If primary is 1B to RF, secondary starts at C, 
+      # but it skips their position
+      if (df$`Second Position` == "C") {
+        # Done
+      } else { # Move, but be careful about crossing the primary pos
+        fpos_in_spos <- which(second_position_order == df$`First Position`)
+        if (spos < fpos_in_spos) {
+          add(adjustLR(spos - 1))
+        } else {
+          add(adjustLR(spos - 2))
+        }
+      }
+    }
+  } else { # No backup. Need to set to none.
+    if (df$`First Position` %in% c("C", "SP", "RP")) {
+      # Nothing
+    } else {
+      # Secondary moves to C, move left 1 back to None
+      add(adjustLR(-1))
+    }
+  }
+} else { # not from_zero
+  if (length(spos) >= 1) {
+    # If 1B, secondary starts at none
+    if (df$`First Position` == "1B") {
+      if (df$`Second Position` == "C") {
+        add(adjustLR(1))
       } else {
-        add(adjustLR(spos - 3))
+        add(adjustLR(spos - 1))
+      }
+    } else if (df$`First Position` == "C") {
+      # If C, secondary starts at none
+      add(adjustLR(spos - 1))
+    } else if (df$`First Position` %in% c("SP", "RP")) {
+      # If RP/SP, can't have secondary
+    } else {
+      # If 2B to RF, secondary starts at 1B, but it skips their position
+      if (df$`Second Position` == "C") {
+        add(adjustLR(-1))
+      } else {
+        fpos_in_spos <- which(second_position_order == df$`First Position`)
+        if (spos < fpos_in_spos) {
+          add(adjustLR(spos - 2))
+        } else {
+          add(adjustLR(spos - 3))
+        }
       }
     }
   }
@@ -185,6 +245,8 @@ add(
 )
 if (df$Bats == "L") {
   add(adjustLR(1))
+} else if (df$Bats == "S") {
+  add(adjustLR(-1))
 }
 
 # Career potential, starts on 1
@@ -193,7 +255,11 @@ add(
 	SendEvent "s" ; \t move to throws
   '
 )
-add(adjustLR(df$`Career Potential` - 1))
+if (from_zero) { # Starts on 5
+  add(adjustLR(df$`Career Potential` - 5))
+} else { # Starts on 1
+  add(adjustLR(df$`Career Potential` - 1))
+}
 
 # Batter ditty type, 1-7
 add(
@@ -207,7 +273,7 @@ add(adjustLRcts(1, df$`Batter Ditty Type`, maxval=7, minval=1))
 # Move to Appearance tab ---------
 add(
   '\n\n\t; Appearance tab
-	SendEvent "9" ; \t move to throws
+	SendEvent "9" ; \t move to appearance tab
   '
 )
 
@@ -229,7 +295,11 @@ add(
 	SendEvent "s" ; \t move to Height
   '
 )
-add(adjustLR(pmax(-6, pmin(12,df$Height - 72))))
+if (from_zero) {
+  # Can't edit
+} else {
+  add(adjustLR(pmax(-6, pmin(12,df$Height - 72))))
+}
 
 # Body type, starts on Atheletic, skinny to left, heavy to right
 add(
@@ -237,12 +307,16 @@ add(
 	SendEvent "ss" ; \t move to face
   '
 )
-if (df$`Body Type` == "Heavy") {
-  add(adjustLR(1))
-} else if (df$`Body Type` == "Skinny") {
-  add(adjustLR(-1))
+if (from_zero) {
+  
 } else {
-  # Athletic, no change needed
+  if (df$`Body Type` == "Heavy") {
+    add(adjustLR(1))
+  } else if (df$`Body Type` == "Skinny") {
+    add(adjustLR(-1))
+  } else {
+    # Athletic, no change needed
+  }
 }
 
 # Face, starts on 8, ranges from 1 to 15
@@ -251,7 +325,11 @@ add(
 	SendEvent "s" ; \t move to face
   '
 )
-add(adjustLRcts(8, df$Face, minval=1, maxval=15))
+if (from_zero) {
+  add(adjustLRcts(1, df$Face, minval=1, maxval=15))
+} else {
+  add(adjustLRcts(8, df$Face, minval=1, maxval=15))
+}
 
 # Hair color, starts on 3, ranges from 3 to 7
 add(
@@ -259,7 +337,11 @@ add(
 	SendEvent "s" ; \t move to Hair color
   '
 )
-add(adjustLRcts(3, df$`Hair Color`, minval=1, maxval=7))
+if (from_zero) {
+  add(adjustLRcts(1, df$`Hair Color`, minval=1, maxval=7))
+} else {
+  add(adjustLRcts(3, df$`Hair Color`, minval=1, maxval=7))
+}
 
 # Hair style, starts on 5, ranges from 1 to 10
 add(
@@ -267,7 +349,11 @@ add(
 	SendEvent "s" ; \t move to Hair style
   '
 )
-add(adjustLRcts(5, df$`Hair Style`, minval=1, maxval=10))
+if (from_zero) {
+  add(adjustLRcts(1, df$`Hair Style`, minval=1, maxval=10))
+} else {
+  add(adjustLRcts(5, df$`Hair Style`, minval=1, maxval=10))
+}
 
 # Facial hair, starts on 4, ranges from 1 to 10
 add(
@@ -275,17 +361,26 @@ add(
 	SendEvent "s" ; \t move to Facial hair
   '
 )
-add(adjustLRcts(4, df$`Facial Hair`, minval=1, maxval=8))
+if (from_zero) {
+  add(adjustLRcts(1, df$`Facial Hair`, minval=1, maxval=8))
+} else {
+  add(adjustLRcts(4, df$`Facial Hair`, minval=1, maxval=8))
+}
 
 
 
 # Move to Body Build tab ----------
-add(
-  '\n\n\t; Body build tab
+# Only exists for create player, not edit
+if (from_zero) {
+  # Not an option
+} else {
+  add(
+    '\n\n\t; Body build tab
 	SendEvent "9" ; \t move to body build tab
 	Sleep 40 ;
   '
-)
+  )
+}
 
 
 # Move to Equipment tab --------
@@ -311,12 +406,15 @@ add(
   '\n\n\t; Batter stance
       ')
 
+add('
+  SetKeyDelay 250, 40  ; 75ms between keys, 25ms between down/up\n')
 which_bs <- which(df$`Batter Stance` == names(batter_stance_options))
 stopifnot(length(which_bs) == 1, is.integer(which_bs))
 add(adjustLRcts(1,
                 which_bs,
                 minval=1, maxval=length(batter_stance_options)))
-
+add('
+  SetKeyDelay 95, 40  ; 75ms between keys, 25ms between down/up\n')
 
 # Contact v R, 50
 add(
@@ -325,7 +423,8 @@ add(
   '
 )
 # add(adjustLR(df$`Contact vs RHP` - 50))
-add(adjustLRapprox(50, df$`Contact vs RHP`, minval=0, maxval=100))
+add(adjustLRapprox(ifelse(from_zero,25,50),
+                   df$`Contact vs RHP`, minval=0, maxval=100))
 
 # Contact v L, 50
 add(
@@ -334,7 +433,8 @@ add(
   '
 )
 # add(adjustLR(df$`Contact vs LHP` - 50))
-add(adjustLRapprox(50, df$`Contact vs LHP`, minval=0, maxval=100))
+add(adjustLRapprox(ifelse(from_zero,0,50),
+                   df$`Contact vs LHP`, minval=0, maxval=100))
 
 
 # Power v R, 50
@@ -344,7 +444,8 @@ add(
   '
 )
 # add(adjustLR(df$`Power vs RHP` - 50))
-add(adjustLRapprox(50, df$`Power vs RHP`, minval=0, maxval=100))
+add(adjustLRapprox(ifelse(from_zero,0,50),
+                   df$`Power vs RHP`, minval=0, maxval=100))
 
 # Power v L, 50
 add(
@@ -353,7 +454,8 @@ add(
   '
 )
 # add(adjustLR(df$`Power vs LHP` - 50))
-add(adjustLRapprox(50, df$`Power vs LHP`, minval=0, maxval=100))
+add(adjustLRapprox(ifelse(from_zero,0,50),
+                   df$`Power vs LHP`, minval=0, maxval=100))
 
 # Bunting
 add(
@@ -361,7 +463,7 @@ add(
 	SendEvent "s" ; \t move to Bunting
   '
 )
-add(adjustLRdiscrete(50, df$Bunting))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$Bunting))
 
 # Plate Discipline
 add(
@@ -369,7 +471,7 @@ add(
 	SendEvent "s" ; \t move to Plate Discipline
   '
 )
-add(adjustLRdiscrete(50, df$`Plate Discipline`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Plate Discipline`))
 
 # Durability
 add(
@@ -377,7 +479,7 @@ add(
 	SendEvent "s" ; \t move to Durability
   '
 )
-add(adjustLRdiscrete(50, df$Durability))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$Durability))
 
 # Speed
 add(
@@ -385,7 +487,7 @@ add(
 	SendEvent "s" ; \t move to Speed
   '
 )
-add(adjustLRcts(50, df$Speed, maxval=99))
+add(adjustLRapprox(ifelse(from_zero,0,50), df$Speed, maxval=99, minval=0))
 
 # Stealing Tendency
 add(
@@ -393,7 +495,7 @@ add(
 	SendEvent "s" ; \t move to Stealing Tendency
   '
 )
-add(adjustLRdiscrete(50, df$`Stealing Tendency`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Stealing Tendency`))
 
 # Baserunning Ability
 add(
@@ -401,7 +503,7 @@ add(
 	SendEvent "s" ; \t move to Baserunning Ability
   '
 )
-add(adjustLRdiscrete(50, df$`Baserunning Ability`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Baserunning Ability`))
 
 # Fielding
 add(
@@ -409,7 +511,7 @@ add(
 	SendEvent "s" ; \t move to Fielding
   '
 )
-add(adjustLRdiscrete(50, df$Fielding))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$Fielding))
 
 # Range
 add(
@@ -417,7 +519,7 @@ add(
 	SendEvent "s" ; \t move to Range
   '
 )
-add(adjustLRdiscrete(50, df$Range))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$Range))
 
 # Throwing Strength
 add(
@@ -425,7 +527,7 @@ add(
 	SendEvent "s" ; \t move to Throwing Strength
   '
 )
-add(adjustLRdiscrete(50, df$`Throwing Strength`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Throwing Strength`))
 
 # Throwing Accuracy
 add(
@@ -433,7 +535,7 @@ add(
 	SendEvent "s" ; \t move to Throwing Accuracy
   '
 )
-add(adjustLRdiscrete(50, df$`Throwing Accuracy`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Throwing Accuracy`))
 
 
 # Move to Batter Tendencies tab --------
@@ -450,7 +552,7 @@ add(
 	SendEvent "s" ; \t move to FB Take vL
   '
 )
-add(adjustLRdiscrete(50, df$`Fastball Take vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Fastball Take vs LHP`))
 
 # FB Take vR
 add(
@@ -458,7 +560,7 @@ add(
 	SendEvent "s" ; \t move to FB Take vR
   '
 )
-add(adjustLRdiscrete(50, df$`Fastball Take vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Fastball Take vs RHP`))
 
 # FB Miss vL
 add(
@@ -466,7 +568,7 @@ add(
 	SendEvent "s" ; \t move to FB Miss vL
   '
 )
-add(adjustLRdiscrete(50, df$`Fastball Miss vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Fastball Miss vs LHP`))
 
 # FB Miss vR
 add(
@@ -474,7 +576,7 @@ add(
 	SendEvent "s" ; \t move to FB Miss vR
   '
 )
-add(adjustLRdiscrete(50, df$`Fastball Miss vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Fastball Miss vs RHP`))
 
 # FB Chase vL
 add(
@@ -482,7 +584,7 @@ add(
 	SendEvent "s" ; \t move to FB Chase vL
   '
 )
-add(adjustLRdiscrete(50, df$`Fastball Chase vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Fastball Chase vs LHP`))
 
 # FB Chase vR
 add(
@@ -490,7 +592,7 @@ add(
 	SendEvent "s" ; \t move to FB Chase vR
   '
 )
-add(adjustLRdiscrete(50, df$`Fastball Chase vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Fastball Chase vs RHP`))
 
 # CB Take vL
 add(
@@ -498,7 +600,7 @@ add(
 	SendEvent "ss" ; \t move to CB Take vL
   '
 )
-add(adjustLRdiscrete(50, df$`Curveball Take vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Curveball Take vs LHP`))
 
 # CB Take vR
 add(
@@ -506,7 +608,7 @@ add(
 	SendEvent "s" ; \t move to CB Take vR
   '
 )
-add(adjustLRdiscrete(50, df$`Curveball Take vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Curveball Take vs RHP`))
 
 # CB Miss vL
 add(
@@ -514,7 +616,7 @@ add(
 	SendEvent "s" ; \t move to CB Miss vL
   '
 )
-add(adjustLRdiscrete(50, df$`Curveball Miss vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Curveball Miss vs LHP`))
 
 # CB Miss vR
 add(
@@ -522,7 +624,7 @@ add(
 	SendEvent "s" ; \t move to CB Miss vR
   '
 )
-add(adjustLRdiscrete(50, df$`Curveball Miss vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Curveball Miss vs RHP`))
 
 # CB Chase vL
 add(
@@ -530,7 +632,7 @@ add(
 	SendEvent "s" ; \t move to CB Chase vL
   '
 )
-add(adjustLRdiscrete(50, df$`Curveball Chase vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Curveball Chase vs LHP`))
 
 # CB Chase vR
 add(
@@ -538,7 +640,7 @@ add(
 	SendEvent "s" ; \t move to CB Chase vR
   '
 )
-add(adjustLRdiscrete(50, df$`Curveball Chase vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Curveball Chase vs RHP`))
 
 # SL Take vL
 add(
@@ -546,7 +648,7 @@ add(
 	SendEvent "ss" ; \t move to SL Take vL
   '
 )
-add(adjustLRdiscrete(50, df$`Slider Take vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Slider Take vs LHP`))
 
 # SL Take vR
 add(
@@ -554,7 +656,7 @@ add(
 	SendEvent "s" ; \t move to SL Take vR
   '
 )
-add(adjustLRdiscrete(50, df$`Slider Take vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Slider Take vs RHP`))
 
 # SL Miss vL
 add(
@@ -562,7 +664,7 @@ add(
 	SendEvent "s" ; \t move to SL Miss vL
   '
 )
-add(adjustLRdiscrete(50, df$`Slider Miss vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Slider Miss vs LHP`))
 
 # SL Miss vR
 add(
@@ -570,7 +672,7 @@ add(
 	SendEvent "s" ; \t move to SL Miss vR
   '
 )
-add(adjustLRdiscrete(50, df$`Slider Miss vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Slider Miss vs RHP`))
 
 # SL Chase vL
 add(
@@ -578,7 +680,7 @@ add(
 	SendEvent "s" ; \t move to SL Chase vL
   '
 )
-add(adjustLRdiscrete(50, df$`Slider Chase vs LHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Slider Chase vs LHP`))
 
 # SL Chase vR
 add(
@@ -586,13 +688,33 @@ add(
 	SendEvent "s" ; \t move to SL Chase vR
   '
 )
-add(adjustLRdiscrete(50, df$`Slider Chase vs RHP`))
+add(adjustLRdiscrete(ifelse(from_zero,0,50), df$`Slider Chase vs RHP`))
+
+# Hot/Cold ----
+for (i_hotcold in c("L", "R")) {
+  
+  add(
+    '\n\n\t; Hot/Cold tab
+	SendEvent "9" ; \t move to Hot/Cold tab L or R
+  '
+  )
+  for (j_ht in 1:9) {
+    
+    if (substring(df[1, paste0('heatmap_v', i_hotcold)], j_ht, j_ht) == "H") {
+      add('SendEvent "d" ; move to hot')
+    } else if (substring(df[1, paste0('heatmap_v', i_hotcold)], j_ht, j_ht) == "C") {
+      add('SendEvent "a" ; move to cold')
+    }
+    add('SendEvent "s" ; move to next')
+  }; rm(j_ht)
+  
+}; rm(i_hotcold)
 
 # Pitcher tab ----
 if (df$`First Position` %in% c("SP", "RP")) {
   add(
     '\n\n\t; Pitcher tab
-	SendEvent "999" ; \t move to Pitcher tab
+	SendEvent "9" ; \t move to Pitcher tab
   '
   )
   
@@ -612,14 +734,15 @@ if (df$`First Position` %in% c("SP", "RP")) {
 	    SendEvent "s" ; \t move to Stamina
       ')
   # add(adjustLR(df$Stamina - 50))
-  add(adjustLRapprox(50, df$Stamina, minval=1, maxval=99))
+  add(adjustLRapprox(ifelse(from_zero,1,50),
+                     df$Stamina, minval=1, maxval=99))
   
   # Pickoff
   add(
     '\n\n\t; Pickoff
 	    SendEvent "s" ; \t move to Pickoff
       ')
-  add(adjustLRdiscrete(50, df$Pickoff))
+  add(adjustLRdiscrete(ifelse(from_zero,0,50), df$Pickoff))
   
   # Fastball Control
   add(
@@ -627,14 +750,15 @@ if (df$`First Position` %in% c("SP", "RP")) {
 	    SendEvent "s" ; \t move to Fastball Control
       ')
   # add(adjustLR(df$`Fastball Control` - 50))
-  add(adjustLRapprox(50, df$`Fastball Control`, minval=0, maxval=100))
+  add(adjustLRapprox(ifelse(from_zero,0,50),
+                     df$`Fastball Control`, minval=0, maxval=100))
   
   # Fastball Velocity
   add(
     '\n\n\t; Fastball Velocity
 	    SendEvent "s" ; \t move to Fastball Velocity
       ')
-  add(adjustLR(df$`Fastball Velocity` - 84))
+  add(adjustLR(df$`Fastball Velocity` - ifelse(from_zero,77,84)))
   
   pitches_added <- 1
   current_pitcher_order_ind <- 1
@@ -643,7 +767,6 @@ if (df$`First Position` %in% c("SP", "RP")) {
     if (paste0(pitch_order[i], " Control") %in% colnames(df)) {
       # Check if player has that pitch
       if (!is.na(df[[paste0(pitch_order[i], " Control")]])) {
-        # browser()
         # Add that pitch
         pitches_added <- pitches_added + 1
         
@@ -652,6 +775,10 @@ if (df$`First Position` %in% c("SP", "RP")) {
           '\n\n\t; Pitch type
       	    SendEvent "s" ; \t move to pitch type
             ')
+        # If changeup, reset first
+        if (i == 1) {
+          add("SendEvent 'ad' ; clear changeup")
+        }
         add(adjustLR(i - ifelse(pitches_added==2, 1, 0)))
         
         # Pitch Movement
@@ -694,7 +821,7 @@ if (df$`First Position` %in% c("SP", "RP")) {
 } # End is pitcher
 
 
-# Save player
+# Save player ----
 add(
   '\n\n\t; Save player
       	    SendEvent "usk" ; \t Save player
@@ -717,6 +844,9 @@ add("}", interrupt=FALSE)
 
 # Write it ----
 write(x=out, file="./autohotkey/make_player_p1.ahk")
+
+# Kill all others ----
+kill_all_ahk()
 
 # Execute it ----
 # system('"C:/Program Files/AutoHotkey/UX/AutoHotkeyUX.exe" C:/Users/colli/Documents/codeprojects/MVP2005/autohotkey/beep.ahk',
