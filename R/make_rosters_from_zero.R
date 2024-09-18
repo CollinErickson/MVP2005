@@ -360,7 +360,7 @@ make_rosters_from_zero <- function() {
   cat('Done with make_rosters_from_zero', "\n")
   timestamp()
 }
-if (F) {
+if (F) { # Run ----
   cat("Change window now", "\n")
   Sys.sleep(2)
   make_rosters_from_zero()

@@ -90,11 +90,12 @@ ootpdf <- ootpdf %>%
 # 7: white
 ootpdf <- ootpdf %>% 
   mutate('MVP_Hair Color'=ifelse(
-    facial_type == 1,
+    facial_type == 4, # White can have any color
     sample(c(1,2,3,5,6), size=n(), replace=T),
     ifelse(
-      facial_type <= 4,
+      facial_type >= 2, # not white or black
       sample(c(1,5,6), size=n(), replace=T),
+      # black
       sample(c(1,6), size=n(), replace=T)
       
     )
@@ -616,30 +617,32 @@ ootpdf <- ootpdf %>%
   # ungroup %>% 
   # When creating in order without certain total count
   group_by(org_id, IsPitcher) %>% 
-  arrange(ifelse(MVP_include,0,1),
+  arrange(#ifelse(MVP_include,0,1),
           # ifelse(level_id<1.5, -MVP_OverallEst, 1e3), # MLB players first
           ifelse(on40manroster, -MVP_OverallEst, 1e3), # 40man players first
           ifelse(is.na(MLB_prospect_rank), 100, MLB_prospect_rank), # Keep prospects
           -MVP_OverallEst # Keep best players
   ) %>% 
   mutate(MVP_org_position_create_rank=1:n()) %>% 
+  mutate(MVP_org_position_rank=1:n()) %>% 
   ungroup %>% 
   group_by(IsPitcher) %>% 
-  arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
+  # arrange(ifelse(MVP_include,0,1), -MVP_OverallEst) %>% 
+  arrange(-MVP_OverallEst) %>% 
   mutate(MVP_MLB_position_rank=1:n()) %>% 
   ungroup
 if (F) {
-  ootpdf %>% group_by(org_id) %>% summarize(n(), sum(MVP_include)) %>% print(n=100)
-  ootpdf %>%  filter(org_id==3, !IsPitcher) %>%
-    relocate(MVP_OverallEst, MLB_prospect_rank, MVP_include, 
-             MVP_org_position_rank, FirstName, LastName) %>% View
+  # ootpdf %>% group_by(org_id) %>% summarize(n(), sum(MVP_include)) %>% print(n=100)
+  # ootpdf %>%  filter(org_id==3, !IsPitcher) %>%
+  #   relocate(MVP_OverallEst, MLB_prospect_rank, MVP_include, 
+  #            MVP_org_position_rank, FirstName, LastName) %>% View
   View(ootpdf %>% filter(org_id==3) %>% arrange(MVP_org_position_create_rank, IsPitcher) %>% 
     relocate(MVP_org_position_create_rank, MVP_OverallEst, on40manroster, MLB_prospect_rank, FirstName, LastName))
 }
-stopifnot(
-  ootpdf %>% filter(team_id>0, MVP_include) %>% group_by(org_id) %>% 
-    count %>% pull(n) == rep(100,30)
-)
+# stopifnot(
+#   ootpdf %>% filter(team_id>0, MVP_include) %>% group_by(org_id) %>% 
+#     count %>% pull(n) == rep(100,30)
+# )
 
 
 
@@ -778,10 +781,21 @@ colnames(MVPdf) <- colnames(MVPdf) %>%
 MVPdf
 # View(MVPdf)
 
+# Overrides ----
+overridedf <- readr::read_csv('./data/MVP Baseball 2005 - Attribute overrides - Sheet1.csv')
+for (i in 1:nrow(overridedf)) {
+  ind_i <- which(MVPdf$bbref_id == overridedf$bbref_id[i])
+  stopifnot(!is.na(ind_i), length(ind_i) == 1)
+  stopifnot(overridedf$stat[i] %in% colnames(MVPdf))
+  MVPdf[ind_i, overridedf$stat[i]] <- overridedf$value[i]
+}; rm(i, ind_i)
+
 # Check some things
 MVPdf$`Body Type` %>% table
 
-stopifnot(nrow(MVPdf %>% filter(include, is.na(bbrefminors_id))) == 0)
+stopifnot(nrow(MVPdf %>%
+                 filter(org_position_create_rank<=50,
+                        is.na(bbrefminors_id))) == 0)
 # Some of these IDs are duplicated!!!
 # stopifnot(!anyDuplicated(MVPdf$bbrefminors_id))
 
