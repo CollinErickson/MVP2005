@@ -57,7 +57,8 @@ charlocation <- list(
 )
 
 
-typeout2 <- function(x, start='done') {
+typeout2 <- function(x, start='done',
+                     return_last_letter=FALSE) {
   # browser()
   stopifnot(is.character(x), length(x) == 1)
   # Clean accents "Loáisiga"
@@ -80,9 +81,13 @@ typeout2 <- function(x, start='done') {
     start <- 'z'
   } else {
     y <- ''
+    start <- tolower(start) # Issue when First was DJ, so last was capital J
     stopifnot(nchar(start) == 1)
+    stopifnot(start %in% letters)
   }
   
+  # For last name, need to know where first name ended
+  last_letter <- NULL
   
   for (i in 1:nchar(x)) {
     if (!(tolower(substring(x, i, i))) %in% letters) {
@@ -99,6 +104,8 @@ typeout2 <- function(x, start='done') {
     loc2 <- charlocation[[tolower(substr(x,i,i))]]
     
     capitalize_i <- (i > 1.5 && (substr(x,i,i) %in% LETTERS))
+    
+    last_letter <- substr(x,i,i)
     
     # Capitalize this letter, need to turn off after
     if (capitalize_i) {
@@ -177,10 +184,16 @@ typeout2 <- function(x, start='done') {
   # Exit by pressing start
   y <- paste0(y, "\n\tSendEvent \"u\" ; \tDone")
   
+  if (return_last_letter) {
+    return(last_letter)
+  }
+  
   y
 }
 if (F) {
   cat(typeout2("aaron"))
+  cat(typeout2("J.P.")) # JP
+  cat(typeout2("J.P.", return_last_letter = T))
 }
 
 adjustLR <- function(x, keyright='d', keyleft='a') {
@@ -250,16 +263,20 @@ if (F) {
 }
 
 # Go either way. cts means 0 to 100 scale
-adjustLRcts <- function(start, goal, maxval=100, minval=0) {
+adjustLRcts <- function(start, goal, maxval=100, minval=0,
+                        keyright='d', keyleft='a') {
   # maxval: contact/power go 0-100, speed goes 0-99
   # minval: stamina goes 0-99
   if (abs(start - goal) <= .55*(maxval-minval)) { # Simple
-    adjustLR(goal - start)
+    adjustLR(goal - start,
+             keyright = keyright, keyleft = keyleft)
   } else { # Go across 0
     if (start > .5*(minval + maxval)) {
-      adjustLR(maxval-start+goal+1 - minval)
+      adjustLR(maxval-start+goal+1 - minval,
+               keyright = keyright, keyleft = keyleft)
     } else {
-      adjustLR(-(start+1+maxval-goal - minval))
+      adjustLR(-(start+1+maxval-goal - minval),
+               keyright = keyright, keyleft = keyleft)
     }
   }
 }
@@ -272,7 +289,9 @@ if (F) {
   adjustLRcts(1, 99, maxval = 99, minval=1) # a
   adjustLRcts(99, 1) # ddd
   adjustLRcts(99, 1, maxval = 99) # dd
-  adjustLRcts(99, 1, maxval = 99, minval=1) # dd
+  adjustLRcts(99, 1, maxval = 99, minval=1) # d
+  adjustLRcts(8, 11, 30,1, keyright = 8, keyleft = 9)
+  adjustLRcts(8, 4, 30,1, keyright = 8, keyleft = 9)
 }
 
 discrete_values <- c(0,10,20,30,40,50,55,60,65,70,75,80,85,90,95,99)
@@ -309,11 +328,12 @@ adjustLRnoneorcts <- function(start, goal, keyright='d', keyleft='a') {
   stopifnot(length(goal) == 1, goal %in% c("NONE", 1:6))
   if (start == goal) {
     # Done
-  } else if (start == "NONE") {
+  } else if (toupper(start) == "NONE") {
     paste0("  SendEvent \"", paste(rep(keyright, as.integer(goal)), collapse=''), "\"\n")
-  } else if (goal == "NONE") {
+  } else if (toupper(goal) == "NONE") {
     paste0("  SendEvent \"", paste(rep(keyleft, as.integer(start)), collapse=''), "\"\n")
   } else {
+    stopifnot(is.integer(goal), is.integer(start))
     adjustLR(as.integer(goal) - as.integer(start))
   }
 }

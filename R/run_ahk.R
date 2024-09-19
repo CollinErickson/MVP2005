@@ -155,9 +155,11 @@ if (F) {
   run_ahk_object$new()$add_SendEvent(" test 123 ")$run_ahk("tmp_zero_rosters")
 }
 
-quick_run_ahk_SendEvent <- function(x) {
+quick_run_ahk_SendEvent <- function(x, kill_before=TRUE, kill_after=FALSE) {
   stopifnot(is.character(x), length(x) == 1)
-  run_ahk_object$new()$add_SendEvent(x)$run_ahk("tmp_quick_run_ahk")
+  run_ahk_object$new()$add_SendEvent(x)$run_ahk("tmp_quick_run_ahk",
+                                                kill_before = kill_before,
+                                                kill_after  = kill_after)
 }
 if (F) {
   quick_run_ahk_SendEvent(" test this  ")

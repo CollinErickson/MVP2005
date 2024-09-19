@@ -58,9 +58,12 @@ make_player_from_row <- function(df, from_zero=FALSE) {
   '
   )
   
+  first_name_last_letter <- typeout2(df$First, return_last_letter = TRUE)
+  
   # Type last name
   add(
-    typeout2(df$Last, start = substring(df$First, nchar(df$First), nchar(df$First)))
+    # typeout2(df$Last, start = substring(df$First, nchar(df$First), nchar(df$First)))
+    typeout2(df$Last, start = tolower(first_name_last_letter))
   )
   
   # Birth month (before date to get right number of days)
@@ -70,7 +73,7 @@ make_player_from_row <- function(df, from_zero=FALSE) {
 	SendEvent "ss" ; \t move to birth month
   '
   )
-  add(adjustLRcts(ifelse(from_zero,8,1),
+  add(adjustLRcts(ifelse(from_zero,1,8),
                   df$`Birth Month`, minval=1, maxval=12))
   
   # Birth date (after month to get right number of days)
@@ -296,7 +299,6 @@ make_player_from_row <- function(df, from_zero=FALSE) {
   '
   )
   if (from_zero) {
-    browser()
     add(adjustLRcts(1, df$Face, minval=1, maxval=15))
   } else {
     add(adjustLRcts(8, df$Face, minval=1, maxval=15))
@@ -361,8 +363,66 @@ make_player_from_row <- function(df, from_zero=FALSE) {
     '\n\n\t; Equipment tab
 	SendEvent "9" ; \t move to equipment tab
 	Sleep 40 ;
+  ')
+  # Bat color
+  add(adjustLRcts(1, sample(1:8,1), minval=1, maxval=8))
+  
+  # Fielding glove
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to fielding glove
   '
   )
+  add(adjustLRcts(1, sample(1:5,1, prob=c(1,1,1,.2,.2)), minval=1, maxval=5))
+  
+  # Elbow guard
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to elbow guard
+  '
+  )
+  add(adjustLRnoneorcts('NONE', sample(c('NONE', 1:3),1, prob=c(4,1,1,1))))
+  
+  # Shin guard
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to shin guard
+  '
+  )
+  add(adjustLRnoneorcts('NONE', sample(c('NONE', 1:2),1, prob=c(4,1,1))))
+  
+  # Wristband
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to wristband
+  '
+  )
+  add(adjustLRnoneorcts('NONE', sample(c('NONE', 1:6),1, prob=c(20,1,1,1,1,1,1))))
+  
+  # Socks
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to socks
+  '
+  )
+  add(adjustLR(sample(c(-1,0,1),1, prob=c(3,3,1))))
+  
+  # Catcher mask
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to catcher mask
+  '
+  )
+  add(adjustLR(sample(c(0,1),1, prob=c(1,1))))
+  
+  # Batting gloves
+  add(
+    '\n\n\t; 
+	SendEvent "s" ; \t move to batting gloves
+  '
+  )
+  add(adjustLR(sample(c(0,1),1, prob=c(50,1))))
+  
   
   
   # Batter/Fielder Ratings tab -----------
@@ -387,7 +447,8 @@ make_player_from_row <- function(df, from_zero=FALSE) {
                   which_bs,
                   minval=1, maxval=length(batter_stance_options)))
   add('
-  SetKeyDelay 95, 40  ; 75ms between keys, 25ms between down/up\n')
+  SetKeyDelay 95, 40  ; 75ms between keys, 25ms between down/up
+  Sleep 100 ; ')
   
   # Contact v R, 50
   add(

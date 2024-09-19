@@ -36,6 +36,9 @@ if (!exists('quick_run_ahk')) {
 if (!exists('is_pitcher_on_edit_player_page')) {
   source("./R/is_pitcher_on_edit_player_page.R")
 }
+if (!exists('make_player_from_row')) {
+  source("./R/make_player.R")
+}
 
 is_on_manage_rosters_statistics <- function() {
   
@@ -60,17 +63,40 @@ make_rosters_from_zero <- function() {
     org <- save_progress_df$org
     substep <- save_progress_df$substep
     subsubstep <- save_progress_df$subsubstep
+    misc_param <- list()
+    # browser()
+    for (cn in setdiff(colnames(save_progress_df),
+                       c('step', 'org', 'substep', 'subsubstep'))) {
+      misc_param[[cn]] <- save_progress_df[[cn]]
+    }
   } else {
     step <- 0
     org <- 1
     substep <- 0
     subsubstep <- 0
+    misc_param <- list()
   }
-  update_progress_file <- function(step, org, substep, subsubstep=0) {
-    readr::write_csv(x=data.frame(step=step, org=org, 
-                                  substep=substep,
-                                  subsubstep=subsubstep),
+  update_progress_file <- function(step, org, substep, subsubstep=0,
+                                   misc_param=list()) {
+    # browser()
+    outdf <- data.frame(step=step, org=org, 
+                        substep=substep,
+                        subsubstep=subsubstep)
+    for (cn in names(misc_param)) {
+      outdf[[cn]] <- misc_param[[cn]]
+    }
+    readr::write_csv(x=outdf,
                      file = save_progress_file_path)
+  }
+  
+  # This csv tracks which players have been created
+  if (file.exists("./data/created_players.csv")) {
+    created_players <- readr::read_csv("./data/created_players.csv")
+  } else {
+    created_players <- tibble(bbrefminors_id=character(),
+                              "Birth Year"=integer(),
+                              "Birth Month"=integer(),
+                              "Birth Date"=integer())
   }
   
   
@@ -107,7 +133,7 @@ make_rosters_from_zero <- function() {
         next
       }
       
-      ### Substep 1: move AAA/AA/A to FA ----
+      ## Substep 1: move AAA/AA/A to FA ----
       if (substep <= 1.5) {
         r <- run_ahk_object$new()
         # Enter FA option
@@ -116,10 +142,15 @@ make_rosters_from_zero <- function() {
         
         # Move to correct org
         if (i_org >= 2) {
-          r$add_SendEvent(paste0("d", 
-                                 paste0(rep("9", i_org - 1),
-                                        collapse=''),
-                                 "a"))
+          # r$add_SendEvent(paste0("d", 
+          #                        paste0(rep("9", i_org - 1),
+          #                               collapse=''),
+          #                        "a"))
+          r$add_SendEvent("d")
+          r$add(adjustLRcts(start=23,
+                            goal=which(MVP_org_order == MVP_org_order2[i_org]),
+                            minval=1, maxval=30, keyleft='8', keyright='9'))
+          r$add_SendEvent("a")
         }
         
         # Dump AAA
@@ -138,10 +169,10 @@ make_rosters_from_zero <- function() {
         
         substep <- 2
         subsubstep <- 0
-        update_progress_file(step, org, substep, subsubsubstep)
+        update_progress_file(step, org, substep, subsubstep)
       }
       
-      ### Substep 2: Make pitchers. They are on top of FA list, easy to find ----
+      ## Substep 2: Make pitchers. They are on top of FA list, easy to find ----
       if (substep < 2.5) {
         # Move to edit player page
         quick_run_ahk_SendEvent('ssssksk')
@@ -173,18 +204,45 @@ make_rosters_from_zero <- function() {
             is_pitcher_on_edit_player_page(
               screenshot_and_read("./images/tmp_delete.png")))
           
+          playerrow <- pitcherdf[ipitcher, ]
+          
+          if (anyDuplicated(
+            bind_rows(
+              created_players %>% select(created_time),
+              playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
+                                      `Birth Month`, `Birth Date`,
+                                      First, Last,
+                                      org_id, level_id)
+            )
+          )) {
+            print(playerrow)
+            stop('Player already created, stopping')
+          }
+          
           # Create player
-          make_player_from_row(pitcherdf[ipitcher, ], from_zero = TRUE)
-          Sys.sleep(1.5)
+          make_player_from_row(playerrow, from_zero = TRUE)
+          Sys.sleep(4.5)
+          
+          # Write to csv that player was created
+          created_players <- bind_rows(
+            created_players,
+            playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
+                                    `Birth Month`, `Birth Date`,
+                                    First, Last,
+                                    org_id, level_id,
+                                    created_time=(Sys.time()))
+          )
+          readr::write_csv(created_players, "./data/created_players.csv")
           
           # Move up to top of list
           if (ipitcher < 26.5) {
             quick_run_ahk_SendEvent('07')
-            Sys.sleep(5)
+            Sys.sleep(5.3)
           }
           
           subsubstep <- ipitcher
           update_progress_file(step, org, substep, subsubstep)
+          rm(playerrow)
         }; rm(ipitcher)
         rm(pitcherdf)
         
@@ -195,10 +253,10 @@ make_rosters_from_zero <- function() {
         substep <- 3
         subsubstep <- 0
         update_progress_file(step, org, substep, subsubstep)
-        stop('finished make pitchers')
+        # stop('finished make pitchers')
       }
       
-      ### Substep 3: Move pitchers from top of FA to AAA/AA ----
+      ## Substep 3: Move pitchers from top of FA to AAA/AA ----
       if (substep <= 3.5) {
         stopifnot(is_on_manage_rosters_statistics())
         
@@ -209,10 +267,15 @@ make_rosters_from_zero <- function() {
         
         # Move to correct org
         if (i_org >= 2) {
-          r$add_SendEvent(paste0("d", 
-                                 paste0(rep("9", i_org - 1),
-                                        collapse=''),
-                                 "a"))
+          # r$add_SendEvent(paste0("d", 
+          #                        paste0(rep("9", i_org - 1),
+          #                               collapse=''),
+          #                        "a"))     "a"))
+          r$add_SendEvent("d")
+          r$add(adjustLRcts(start=23,
+                            goal=which(MVP_org_order == MVP_org_order2[i_org]),
+                            minval=1, maxval=30, keyleft='8', keyright='9'))
+          r$add_SendEvent("a")
         }
         
         # Move to AAA
@@ -227,17 +290,22 @@ make_rosters_from_zero <- function() {
         # Move remaining 2 pitchers to AA
         r$add_SendEvent(paste0("", paste0(rep("ksk", 2), collapse='')))
         
-        r$run_ahk()
+        # Move back to roster menu Statistics
+        r$add_SendEvent('i')
+        
+        r$run_ahk("tmp_make_rosters_from_zero")
         rm(r)
+        
+        
         
         substep <- 4
         subsubstep <- 0
         update_progress_file(step, org, substep, subsubstep)
-        stop('finished pitchers move')
+        cat('finished pitchers move\n')
       }
       
-      ### Substep 4: Make batters ----
-      ###   They are not on top of FA list, need to find start index ----
+      ## Substep 4: Make batters ----
+      ###   They are not on top of FA list, need to find start index
       if (substep < 4.5) {
         # Move to edit player page
         quick_run_ahk_SendEvent('ssssksk')
@@ -247,16 +315,24 @@ make_rosters_from_zero <- function() {
         Sys.sleep(4)
         # browser()
         
-        # Find how many pitchers we need to skip
-        numskip <- 0
-        while(
-          is_pitcher_on_edit_player_page(
-            screenshot_and_read("./images/tmp_delete.png"))
-        ) {
-          numskip <- numskip + 1
-          quick_run_ahk_SendEvent('s')
+        if (subsubstep == 0) {
+          # Find how many pitchers we need to skip
+          numskip <- 0
+          while(
+            is_pitcher_on_edit_player_page(
+              screenshot_and_read("./images/tmp_delete.png"))
+          ) {
+            numskip <- numskip + 1
+            quick_run_ahk_SendEvent('s', kill_before = ifelse(numskip<=1,T,F))
+          }
+        } else {
+          # browser()
+          numskip <- misc_param$numskip
+          if (is.null(numskip) || is.na(numskip) || numskip<0) {
+            browser('bad numskip')
+          }
         }
-        browser()
+        # browser()
         
         batterdf <- MVPdf %>% 
           filter(org_id == which(MVP_org_order2[org] == OOTP_MLB_team_order),
@@ -272,21 +348,57 @@ make_rosters_from_zero <- function() {
           }
           # Move down to editable player: first one is already okay
           if (ibatter > 1.5) {
-            quick_run_ahk_SendEvent(paste0(rep("d", ibatter - 1 + numskip),
+            quick_run_ahk_SendEvent(paste0(rep("s", ibatter - 1 + numskip),
                                            collapse = ''))
           }
+          
+          # Make sure player is batter
+          stopifnot(
+            !is_pitcher_on_edit_player_page(
+              screenshot_and_read("./images/tmp_delete.png")))
+          
+          playerrow <- batterdf[ibatter, ]
+          
+          if (anyDuplicated(
+            bind_rows(
+              created_players %>% select(created_time),
+              playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
+                                      `Birth Month`, `Birth Date`,
+                                      First, Last,
+                                      org_id, level_id)
+            )
+          )) {
+            print(playerrow)
+            stop('Player already created, stopping')
+          }
+          
           # Create player
-          make_player_from_row(batterdf[ibatter, ], from_zero = TRUE)
+          make_player_from_row(playerrow, from_zero = TRUE)
+          Sys.sleep(4.5)
+          
+          # Write to csv that player was created
+          created_players <- bind_rows(
+            created_players,
+            playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
+                                    `Birth Month`, `Birth Date`,
+                                    First, Last,
+                                    org_id, level_id,
+                                    created_time=(Sys.time()))
+          )
+          readr::write_csv(created_players, "./data/created_players.csv")
           
           # Move up to top of list
           if (ibatter < 38.5) {
             quick_run_ahk_SendEvent('07')
-            Sys.sleep(4)
+            Sys.sleep(5.3)
           }
           
           subsubstep <- ibatter
-          update_progress_file(step, org, substep, subsubstep)
-        }
+          update_progress_file(step, org, substep, subsubstep, 
+                               misc_param=list(numskip=numskip))
+          
+          rm(playerrow)
+        }; rm(ibatter, numskip)
         
         # Move back to menu page
         quick_run_ahk_SendEvent('ii')
@@ -295,10 +407,10 @@ make_rosters_from_zero <- function() {
         substep <- 5
         subsubstep <- 0
         update_progress_file(step, org, substep, subsubstep)
-        stop('finished make batters')
-      }; rm(ibatter, numskip)
+        # stop('finished make batters')
+      } # End substep 4
       
-      ### Substep 5: Move batters from top of FA to AA/A ----
+      ## Substep 5: Move batters from top of FA to AA/A ----
       if (substep <= 5.5) {
         stopifnot(is_on_manage_rosters_statistics())
         
@@ -309,10 +421,15 @@ make_rosters_from_zero <- function() {
         
         # Move to correct org
         if (i_org >= 2) {
-          r$add_SendEvent(paste0("d", 
-                                 paste0(rep("9", i_org - 1),
-                                        collapse=''),
-                                 "a"))
+          # r$add_SendEvent(paste0("d", 
+          #                        paste0(rep("9", i_org - 1),
+          #                               collapse=''),
+          #                        "a"))     "a"))
+          r$add_SendEvent("d")
+          r$add(adjustLRcts(start=23,
+                            goal=which(MVP_org_order == MVP_org_order2[i_org]),
+                            minval=1, maxval=30, keyleft='8', keyright='9'))
+          r$add_SendEvent("a")
         }
         
         # Move to AA
@@ -327,13 +444,16 @@ make_rosters_from_zero <- function() {
         # Move remaining 39-23=16 batters to A
         r$add_SendEvent(paste0("", paste0(rep("ksk", 16), collapse='')))
         
-        r$run_ahk()
+        # Move back to roster menu Statistics
+        r$add_SendEvent('i')
+        
+        r$run_ahk("tmp_make_rosters_from_zero")
         rm(r)
         
         substep <- 6
         subsubstep <- 0
         update_progress_file(step, org, substep, subsubstep)
-        stop('finished batters move')
+        # stop('finished batters move')
       }
       
       # Increment org
