@@ -8,7 +8,8 @@ if (!exists('is_editable_player')) {
 
 # Make one player
 
-make_player_from_row <- function(df, from_zero=FALSE) {
+make_player_from_row <- function(df, from_zero=FALSE,
+                                 already_entered_player=FALSE) {
   stopifnot(is.data.frame(df), nrow(df)==1)
   
   if (file.exists("./autohotkey/make_player_p1_done.txt")) {
@@ -18,13 +19,15 @@ make_player_from_row <- function(df, from_zero=FALSE) {
   r <- run_ahk_object$new()
   add <- r$add
   
-  # Need to start on create player button, before pressing
-  # Enter create player
-  quick_run_ahk('
+  if (!already_entered_player) {
+    # Need to start on create player button, before pressing
+    # Enter create player
+    quick_run_ahk('
     SetKeyDelay 175, 25  ; 75ms between keys, 25ms between down/up.
     SetKeyDelay 95, 40  ; 75ms between keys, 25ms between down/up
     SendEvent "k"
       Sleep 3000')
+  }
   
   if (from_zero) {
     stopifnot(is_editable_player())

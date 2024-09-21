@@ -1,5 +1,5 @@
 
-# MVP2005
+# MVP Baseball 2024 (PS2)
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -22,7 +22,7 @@ The memory card contains a roster file that you should load.
 1. Download and install PCSX2.
 
 2. Legally acquire the PS2 bios and a copy of MVP Baseball 2005 for PS2.
-Put these both in the proper folders.
+Put these both in the proper folders. If you need help, Google it.
 
 3. Download the latest memory card file from the Releases tab on this page.
 Put this file in the memory card folder for PCSX2. In PCSX2, open the memory
@@ -40,7 +40,7 @@ did and I'll put it here.
 ### I'm confused. What am I supposed to do?
 
 See the Instructions (Beginner) above. You don't need all the files in this
-repo, you only download a single file from the Releases page.
+repo, you only download a single memory card file from the Releases page.
 
 ### How can I contribute?
 
@@ -51,7 +51,13 @@ above.
 If you are enjoying it, let me know by starring this repo or sending me an 
 email.
 
+Some help could be used to make better attributes, but it's not straightforward.
+
 ### Will there be future updates?
+
+I can easily rerun the code to remake the updated rosters, but I will likely
+only do so if there is demand. Email me or watch this repo so that I know
+you are interested.
 
 ### How can I be notified about future updates?
 
@@ -59,10 +65,12 @@ On this page, click on "Watch", then "Custom", then check "Releases" and
 click apply. You should receive an email when there is a new release.
 (I have never actually tried this, correct me if I'm wrong.)
 
-### Why are the players from 2005 on the Free Agent list with horrible stats?
+### Why are the players from 2005 on the minor league teams with horrible stats?
 
 The old players can't be deleted. The best option is to make them horrible
-and leave them on the Free Agent list.
+so that they fill up the AA/A. Only 25 players can be created, and there are a
+limited number of players that can be edited, so I could only create about 70
+players per org, which requires some of the old players to fill out the rosters.
 
 
 ## Known issues
@@ -72,9 +80,11 @@ and leave them on the Free Agent list.
 * My data source doesn't have 2-seamers, only sinkers, so I randomly converted
 half of them to be 2-seam FB (need a better data source)
 
+* Many pitchers are missing pitches
+
 * No rare pitches (a few pitchers should have knuckleball, screwball, forkball)
 
 * Better calibration of the attributes. E.g., maybe there are too many/few
 hitters with contact v LHP over 90. (Need help identifying these.)
 
-* Better attribute values (a lot seem weird)
+* Better attribute values (a lot seem weird). Some players are too good/bad.

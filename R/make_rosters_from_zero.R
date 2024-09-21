@@ -92,6 +92,9 @@ make_rosters_from_zero <- function() {
   # This csv tracks which players have been created
   if (file.exists("./data/created_players.csv")) {
     created_players <- readr::read_csv("./data/created_players.csv")
+    stopifnot(!anyDuplicated(
+      created_players %>%
+        select(bbrefminors_id, `Birth Year`, `Birth Month`, `Birth Date`)))
   } else {
     created_players <- tibble(bbrefminors_id=character(),
                               "Birth Year"=integer(),
@@ -112,16 +115,16 @@ make_rosters_from_zero <- function() {
   stopifnot(is_on_manage_rosters_statistics())
   
   
-  # Step 0: example step 0000
+  # Step 0: example step 0000 ----
   if (step <= 0.5) {
     # Do stuff
-    
-    # Save progress
-    update_progress_file(step = 1, org=1, substep=1)
     
     # End step 0 by incrementing
     step <- 1
     subsubstep <- 0
+    
+    # Save progress
+    update_progress_file(step = 1, org=1, substep=1)
   }
   
   # Step 1: Do one org ----
@@ -267,10 +270,6 @@ make_rosters_from_zero <- function() {
         
         # Move to correct org
         if (i_org >= 2) {
-          # r$add_SendEvent(paste0("d", 
-          #                        paste0(rep("9", i_org - 1),
-          #                               collapse=''),
-          #                        "a"))     "a"))
           r$add_SendEvent("d")
           r$add(adjustLRcts(start=23,
                             goal=which(MVP_org_order == MVP_org_order2[i_org]),
@@ -474,8 +473,247 @@ make_rosters_from_zero <- function() {
   # Step 2: Edit remaining players ----
   cat("Starting step 2 in make_rosters_from_zero: edit players", "\n")
   
+  if (step <= 2.5) {
+    browser("fix s2")
+    
+    # Players that can be created, in order
+    remainingeditplayersdf <- MVPdf %>% 
+      filter(!MakeFromCreate) %>% 
+      dplyr::anti_join(created_players,
+                       c('bbrefminors_id', 'Birth Year', 'Birth Month', 'Birth Date')) %>% 
+      arrange(org_position_create_rank)
+    stopifnot(nrow(remainingeditplayersdf) >= 2)
+    
+    # While there is an editable player, edit them
+    done <- FALSE
+    while(!done) {
+      cat("Step 2, doing next player", "\n")
+      # Start on roster options page
+      stopifnot(!is_on_manage_rosters_statistics())
+      
+      # Move to edit player page
+      quick_run_ahk_SendEvent('ssssksk')
+      Sys.sleep(1)
+      # Move to FA list
+      quick_run_ahk_SendEvent('7')
+      Sys.sleep(4)
+      
+      # Check if pitcher before entering
+      is_pitcher <- is_pitcher_on_edit_player_page()
+      
+      # Enter first player
+      quick_run_ahk('SendEvent "k"
+                     Sleep 3000')
+      
+      # Check if is_editable
+      is_editable <- is_editable_player()
+      
+      if (is_editable) {
+        # Find next player to edit
+        stopifnot(nrow(remainingeditplayersdf) >= 100)
+        if (is_pitcher) {
+          playerrow <- remainingeditplayersdf %>%
+            filter(`First Position` %in% c('SP', 'RP')) %>%
+            .[1, ]
+        } else {
+          playerrow <- remainingeditplayersdf %>%
+            filter(!(`First Position` %in% c('SP', 'RP'))) %>%
+            .[1, ]
+        }
+        
+        # Edit player
+        make_player_from_row(playerrow, from_zero = TRUE,
+                             already_entered_player = TRUE)
+        Sys.sleep(4.5)
+        
+        # Write to csv that player was created
+        created_players <- bind_rows(
+          created_players,
+          playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
+                                  `Birth Month`, `Birth Date`,
+                                  First, Last,
+                                  org_id, level_id,
+                                  created_time=(Sys.time()))
+        )
+        readr::write_csv(created_players, "./data/created_players.csv")
+        
+        # Remove from remaining player df
+        nrows_before <- nrow(remainingeditplayersdf)
+        remainingeditplayersdf <- remainingeditplayersdf %>% 
+          dplyr::anti_join(created_players,
+                           c('bbrefminors_id', 'Birth Year', 'Birth Month', 'Birth Date'))
+        stopifnot(nrow(remainingeditplayersdf) == nrows_before - 1)
+        rm(nrows_before)
+        
+        # Move to the Free Agent tab
+        r <- run_ahk_object$new()
+        r$add('iisk')
+        
+        # Move to correct org
+        if (i_org >= 2) {
+          r$add_SendEvent("d")
+          r$add(adjustLRcts(start=23,
+                            goal=which(MVP_org_order == MVP_org_order2[i_org]),
+                            minval=1, maxval=30, keyleft='8', keyright='9'))
+          r$add_SendEvent("a")
+        }
+        
+        # Move to A
+        r$add_SendEvent("d000a")
+        
+        # Move top player to that team
+        r$add_SendEvent("ksk")
+        
+        # Return to roster stats page
+        r$add_SendEvent('i')
+        
+        # Run it
+        r$run_ahk("tmp_make_rosters_from_zero")
+        rm(r)
+        
+        # Don't need to update progress csv since there's no pre-known count,
+        #  but save anyway
+        subsubstep <- subsubstep + 1
+        update_progress_file(step=step, org=org, substep=substep,
+                             subsubstep = subsubstep)
+        
+        # cleanup
+        rm(playerrow)
+      } else {
+        done <- TRUE
+      }
+      
+      # Cleanup
+      rm(is_pitcher, is_editable, remainingeditplayersdf)
+    }; rm(done)
+    
+    
+    
+    # End step 2 by incrementing
+    cat("Done with step 2", "\n")
+    step <- 3
+    substep <- 1
+    subsubstep <- 0
+    # Save progress
+    update_progress_file(step = 3, org=NA, substep=substep, subsubstep=subsubstep)
+  }
+  
   # Step 3: Create 25 players ----
   
+  cat("Starting step 3 in make_rosters_from_zero: create players", "\n")
+  
+  if (step <= 3.5) {
+    browser("fix s3")
+    
+    # Players that can be created, in order
+    playerstocreatedf <- MVPdf %>% 
+      dplyr::anti_join(created_players,
+                       c('bbrefminors_id', 'Birth Year', 'Birth Month', 'Birth Date')) %>% 
+      arrange(ifelse(MakeFromCreate, 0, 1), org_position_create_rank)
+    stopifnot(nrow(playerstocreatedf) >= 2)
+    
+    # Create 25 players
+    # subsubstep is the number of players created
+    for (i_create in 1:25) {
+      if (subsubstep >= i_create) {
+        next
+      }
+      cat("Step 3, creating next player", "\n")
+      # Start on roster options page
+      stopifnot(!is_on_manage_rosters_statistics())
+      
+      # Move to create player page
+      quick_run_ahk_SendEvent('sssskk')
+      Sys.sleep(1)
+      
+      # Find next player to create
+      stopifnot(nrow(playerstocreatedf) >= 2)
+      playerrow <- playerstocreatedf %>%
+        .[1, ]
+      
+      # Create player
+      make_player_from_row(playerrow, from_zero = FALSE,
+                           already_entered_player = FALSE)
+      Sys.sleep(4.5)
+      
+      # Write to csv that player was created
+      created_players <- bind_rows(
+        created_players,
+        playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
+                                `Birth Month`, `Birth Date`,
+                                First, Last,
+                                org_id, level_id,
+                                created_time=(Sys.time()))
+      )
+      readr::write_csv(created_players, "./data/created_players.csv")
+      
+      # Remove from remaining player df
+      playerstocreatedf <- playerstocreatedf[-1, ]
+      
+      # Move to the Free Agent tab
+      r <- run_ahk_object$new()
+      r$add('iisk')
+      
+      # Move to correct org
+      if (i_org >= 2) {
+        r$add_SendEvent("d")
+        r$add(adjustLRcts(start=23,
+                          goal=which(MVP_org_order == MVP_org_order2[i_org]),
+                          minval=1, maxval=30, keyleft='8', keyright='9'))
+        r$add_SendEvent("a")
+      }
+      
+      # Move to A
+      r$add_SendEvent("d000a")
+      
+      # Move top player to that team
+      r$add_SendEvent("ksk")
+      
+      # Return to roster stats page
+      r$add_SendEvent('i')
+      
+      # Run it
+      r$run_ahk("tmp_make_rosters_from_zero")
+      rm(r)
+      
+      # Don't need to update progress csv since there's no pre-known count,
+      #  but save anyway
+      subsubstep <- subsubstep + 1
+      update_progress_file(step=step, org=org, substep=substep, subsubstep = subsubstep)
+      
+      # cleanup
+      rm(playerrow)
+      
+    }; rm(done, playerstocreatedf)
+    
+    
+    
+    # End step 3 by incrementing
+    cat("Done with step 3", "\n")
+    step <- 4
+    substep <- 1
+    subsubstep <- 0
+    # Save progress
+    update_progress_file(step = 4, org=NA, substep=substep,subsubstep = subsubstep)
+  }
+  
+  # Step 4: Optimize rosters ----
+  if (step <= 4.5) {
+    browser("fix step 4")
+    # Do stuff
+    
+    # Mess up rosters so that MLB needs to be optimized
+    
+    # Exit roster page, click yes to all optimizations
+    
+    # End step 4 by incrementing
+    step <- 5
+    substep <- 1
+    subsubstep <- 0
+    
+    # Save progress
+    update_progress_file(step = step, org=NA, substep=substep, subsubstep=subsubstep)
+  }
   # Done
   cat('Done with make_rosters_from_zero', "\n")
   timestamp()
