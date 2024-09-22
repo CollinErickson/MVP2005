@@ -70,3 +70,51 @@ and my program often gets stuck for an unknown reason.
 ## Creating players
 
 ## Getting player attributes
+
+## Steps for redoing rosters in the future
+
+1. Get rosters csv from OOTP.
+
+1. Update the stat map csv.
+
+1. Update the stat override csv.
+
+1. Run `./r/ootp.R` to update MVPdf. Make sure it runs the last section
+of code that saves the csv.
+
+1. Start MVP Baseball 2005 in PCSX2.
+Press tab so that it runs at double speed.
+Make sure the default team is set to Boston Red Sox (this is true
+with no profile, or the favorite team can be set to this).
+Maybe turn off all songs in the jukebox so that it doesn't keep saying
+the song name in the bottom right corner.
+Load the Zero2 roster file.
+(Or Zero roster file, then move all editable players on MLB rosters to
+free agents.) 
+If using a computer other than my HP Pavilion, you will likely need to edit the
+R functions that take screenshots to see what PCSX2 is showing.
+
+1. Make sure that created_players.csv and
+create_rosters_from_zero_progress.csv have been deleted.
+
+
+1. Run the code at the bottom of `./r/make_rosters_from_zero.R`. This takes
+about 50 hours. Use ctrl+shift+2 to interrupt occasionally to save to roster
+file. 
+Remaining bugs:
+(1) It gave a bunch of Windows errors that it wasn't able
+to access a file. Probably either when it updates created_players.csv or
+create_rosters_from_zero_progress.csv. It didn't seem to be an actual issue.
+The error only started showing up for the last handful of orgs.
+My best guess is that created_players.csv took too long to save as it got 
+longer. Maybe I should add a sleep option when it's longer than 1,300 players.
+(2) I gave each team 27 pitchers and 39 hitters. This was too many, as later
+teams ended up with maybe a pitcher or two less than, and only ~29 hitters.
+
+1. Look through for players that were made incorrectly.
+I don't know why, but three batters on the Yankees were made incorrectly,
+the stats were clearly wrong.
+Also look for players that are clearly too good. Brett Phillips was one of the
+best players on the Yankees, but he had stats as a batter, but now he switched
+to be a pitcher. I just deleted him.
+

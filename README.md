@@ -49,14 +49,16 @@ If you see any issues, report it on the
 above.
 
 If you are enjoying it, let me know by starring this repo or sending me an 
-email.
+email at collinberickson (at) gmail (dot) com.
 
 Some help could be used to make better attributes, but it's not straightforward.
+If you want to help, you can email me.
 
 ### Will there be future updates?
 
 I can easily rerun the code to remake the updated rosters, but I will likely
-only do so if there is demand. Email me or watch this repo so that I know
+only do so if there is demand since it takes about 50 hours of computer time.
+Email me or watch this repo so that I know
 you are interested.
 
 ### How can I be notified about future updates?
@@ -75,6 +77,8 @@ players per org, which requires some of the old players to fill out the rosters.
 
 ## Known issues
 
+* Pitchers are too good relative to position players
+
 * No heatmaps
 
 * My data source doesn't have 2-seamers, only sinkers, so I randomly converted
@@ -88,3 +92,6 @@ half of them to be 2-seam FB (need a better data source)
 hitters with contact v LHP over 90. (Need help identifying these.)
 
 * Better attribute values (a lot seem weird). Some players are too good/bad.
+
+* Players at the wrong level (MLB on AAA, etc). The game optimized the roster
+for each team, I'm not going to manually fix any of these.
