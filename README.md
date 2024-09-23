@@ -43,7 +43,8 @@ did and I'll put it here.
 ### I'm confused. What am I supposed to do?
 
 See the Instructions (Beginner) above. You don't need all the files in this
-repo, you only download a single memory card file from the Releases page.
+repo, you only download a single memory card file from the 
+[Releases page](https://github.com/CollinErickson/MVP2005/releases/).
 
 ### How can I contribute?
 
