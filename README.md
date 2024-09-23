@@ -4,8 +4,8 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-This GitHub repo provides PS2 memory cards that have updated rosters
-for MVP Baseball 2005.
+This GitHub repo provides memory cards that have updated rosters
+for MVP Baseball 2005 on PS2.
 
 This will only work for the PS2 version of MVP Baseball 2005, not for other
 platforms or games.
@@ -21,8 +21,9 @@ The memory card contains a roster file that you should load.
 
 1. Download and install PCSX2.
 
-2. Legally acquire the PS2 bios and a copy of MVP Baseball 2005 for PS2.
-Put these both in the proper folders. If you need help, Google it.
+2. Legally acquire the PS2 BIOS and a copy of MVP Baseball 2005 for PS2.
+Put these both in the proper folders. If you need help, Google it or post
+in the PCSX2 forums.
 
 3. Download the latest memory card file from the Releases tab on this page.
 Put this file in the memory card folder for PCSX2. In PCSX2, open the memory
@@ -71,16 +72,15 @@ click apply. You should receive an email when there is a new release.
 
 The old players can't be deleted. The best option is to make them horrible
 so that they fill up the AA/A. Only 25 players can be created, and there are a
-limited number of players that can be edited, so I could only create about 70
+limited number of players that can be edited, so I could only create about 66
 players per org, which requires some of the old players to fill out the rosters.
-
+I wanted to do 100 players per org, but it's not possible without somehow
+modding the game file.
 
 ## Known issues
 
 * Pitchers are too good relative to position players. Next time I'll make
 batters contact/power a little higher, and make pitch movement/control lower.
-
-* No heatmaps
 
 * My data source doesn't have 2-seamers, only sinkers, so I randomly converted
 half of them to be 2-seam FB (need a better data source)
@@ -101,15 +101,24 @@ for each team, I'm not going to manually fix any of these.
 
 ### Top players in the dynasty fantasy draft
 
-![image](images/demo/fantasy_draft_top_players.png)
+The top players look pretty reasonable.
+
+![](images/demo/fantasy_draft_top_players.png)
 
 ### First players in a dynasty fantasy draft
 
-![image](images/demo/fantasy_draft_review.png)
+Edman is a bit of a reach with the second pick, passing on Witt is sure
+to anger Royals fans.
+
+![](images/demo/fantasy_draft_review.png)
 
 ### Dodgers batting order
 
-![image](images/demo/dodgers_batting_order.png)
+Ohtani is a pitcher, and two way players don't really work in this game.
+If you prefer him as a batter than as a pitcher, go to edit players and change
+his position.
+
+![](images/demo/dodgers_batting_order.png)
 
 ### Astros lineup in game
 
@@ -117,4 +126,8 @@ for each team, I'm not going to manually fix any of these.
 
 ### Braves defense in game
 
-![image](images/demo/braves_defense_before_game.png)
+Gio Urshela gets the start over Matt Olson due to having better stats,
+which is due to my data source. Hopefully we can get better attributes in the
+future.
+
+![](images/demo/braves_defense_before_game.png)
