@@ -12,8 +12,8 @@ platforms or games.
 
 ## Instructions (advanced)
 
-Download the latest memory card from releases page.
-The memory card contains a roster file that you should load.
+Download the latest memory card from [Releases page](https://github.com/CollinErickson/MVP2005/releases/).
+The memory card is a ".ps2" file that contains a roster file that you should load.
 
 ## Instructions (beginner)
 
@@ -25,11 +25,13 @@ The memory card contains a roster file that you should load.
 Put these both in the proper folders. If you need help, Google it or post
 in the PCSX2 forums.
 
-3. Download the latest memory card file from the Releases tab on this page.
+3. Download the latest memory card file from the [Releases page](https://github.com/CollinErickson/MVP2005/releases/).
+Look at the most recent release, and download the ".ps2" file, which is the 
+memory card.
 Put this file in the memory card folder for PCSX2. In PCSX2, open the memory
 card settings, and put the memory card in one of the two slots.
 
-4. Start the game. Navigate to the Rosters option and then Load Rosters.
+4. Start the game in PCSX2. Navigate to the Rosters option and then Load Rosters.
 
 ### Using PS2
 
@@ -51,6 +53,7 @@ above.
 
 If you are enjoying it, let me know by starring this repo or sending me an 
 email at collinberickson (at) gmail (dot) com.
+Also please share with your friends!
 
 Some help could be used to make better attributes, but it's not straightforward.
 If you want to help, you can email me.
@@ -122,7 +125,7 @@ his position.
 
 ### Astros lineup in game
 
-![image](images/demo/astros_lineup_before_game.png)
+![](images/demo/astros_lineup_before_game.png)
 
 ### Braves defense in game
 
