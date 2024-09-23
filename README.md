@@ -77,7 +77,8 @@ players per org, which requires some of the old players to fill out the rosters.
 
 ## Known issues
 
-* Pitchers are too good relative to position players
+* Pitchers are too good relative to position players. Next time I'll make
+batters contact/power a little higher, and make pitch movement/control lower.
 
 * No heatmaps
 
@@ -95,3 +96,25 @@ hitters with contact v LHP over 90. (Need help identifying these.)
 
 * Players at the wrong level (MLB on AAA, etc). The game optimized the roster
 for each team, I'm not going to manually fix any of these.
+
+## Screenshots
+
+### Top players in the dynasty fantasy draft
+
+![image](images/demo/fantasy_draft_top_players.png)
+
+### First players in a dynasty fantasy draft
+
+![image](images/demo/fantasy_draft_review.png)
+
+### Dodgers batting order
+
+![image](images/demo/dodgers_batting_order.png)
+
+### Astros lineup in game
+
+![image](images/demo/astros_lineup_before_game.png)
+
+### Braves defense in game
+
+![image](images/demo/braves_defense_before_game.png)
