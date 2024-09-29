@@ -524,7 +524,11 @@ ootpdf <- ootpdf %>% left_join(
 # Heatmaps ----
 # Give num hot/cold based on Contact+Power for that hand
 for (hand in c("L", "R")) {
-  ootpdf$handbatavg <- (ootpdf$`MVP_Contact vs LHP` + ootpdf$`MVP_Power vs LHP`) / 2
+  # Bad code in first release used LHP for both
+  # ootpdf$handbatavg <- (ootpdf$`MVP_Contact vs LHP` + ootpdf$`MVP_Power vs LHP`) / 2
+  stop("Make sure fix to handbatavg worked. I added test later, check that too.")
+  ootpdf$handbatavg <- (ootpdf[[paste0("MVP_Contact vs ", hand, "HP")]] +
+                          ootpdf[[paste0("MVP_Contact vs ", hand, "HP")]]) / 2
   ootpdf$numhot <- case_when(
     ootpdf$handbatavg > 92 ~ 8,
     ootpdf$handbatavg > 88 ~ 7,
@@ -565,6 +569,8 @@ for (hand in c("L", "R")) {
   }; rm(i, hotcoldvec)
   ootpdf <- ootpdf %>% select(-handbatavg, -numhot, -numcold)
 }; rm(hand, heatmap_colname)
+stop("Make sure this test works for heatmaps")
+stopifnot(any(ootpdf$MVP_heat_vL != ootpdf$MVP_heat_vR))
 
 
 # MVP OverallEst

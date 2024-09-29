@@ -86,6 +86,14 @@ modding the game file.
 * Pitchers are too good relative to position players. Next time I'll make
 batters contact/power a little higher, and make pitch movement/control lower.
 
+* Heatmaps for both vs LHP and vs RHP were done using contact and power vs LHP.
+I fixed the code, this will be fixed in the next version.
+
+* Player heights and weights don't match reality. This is because you cannot
+edit these for any players, only the 25 players that can be created. I could
+change the creation order to try to match heights/weights, but that is more
+work than it's worth.
+
 * My data source doesn't have 2-seamers, only sinkers, so I randomly converted
 half of them to be 2-seam FB (need a better data source)
 
