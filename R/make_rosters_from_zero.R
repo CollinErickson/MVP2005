@@ -53,7 +53,6 @@ is_on_manage_rosters_statistics <- function() {
   #         .[[1]] %>% .[1:3,,] %>%
   #         as.integer %>% mean
   # )
-  # browser()
   # ss %>% magick::image_crop("200x150+1200+250") %>% .[[1]] %>% .[1:3,,] %>% as.integer %>% mean
   on_mrs <- (abs((ss %>% magick::image_crop("200x150+1200+250") %>%
                     .[[1]] %>% .[1:3,,] %>%
@@ -72,7 +71,6 @@ make_rosters_from_zero <- function() {
     substep <- save_progress_df$substep
     subsubstep <- save_progress_df$subsubstep
     misc_param <- list()
-    # browser()
     for (cn in setdiff(colnames(save_progress_df),
                        c('step', 'org', 'substep', 'subsubstep'))) {
       misc_param[[cn]] <- save_progress_df[[cn]]
@@ -86,7 +84,12 @@ make_rosters_from_zero <- function() {
   }
   update_progress_file <- function(step, org, substep, subsubstep=0,
                                    misc_param=list()) {
-    # browser()
+    cat("In update_progress_file: step", step,
+        "org", org,
+        "substep", substep,
+        "subsubstep", subsubstep, "\n")
+    timestamp()
+    
     outdf <- data.frame(step=step, org=org, 
                         substep=substep,
                         subsubstep=subsubstep)
@@ -107,7 +110,8 @@ make_rosters_from_zero <- function() {
     created_players <- tibble(bbrefminors_id=character(),
                               "Birth Year"=integer(),
                               "Birth Month"=integer(),
-                              "Birth Date"=integer())
+                              "Birth Date"=integer(),
+                              created_time=Sys.time()[0])
   }
   
   num_pitchers_to_create <- 26 # orig 27
@@ -149,6 +153,7 @@ make_rosters_from_zero <- function() {
       
       ## Substep 1: move AAA/AA/A to FA ----
       if (substep <= 1.5) {
+        cat("Starting step 1 substep 1, i_org=", i_org, "\n")
         r <- run_ahk_object$new()
         # Enter FA option
         r$add_SendEvent("sk")
@@ -194,7 +199,6 @@ make_rosters_from_zero <- function() {
         # Move to FA list
         quick_run_ahk_SendEvent('7')
         Sys.sleep(4)
-        # browser()
         
         pitcherdf <- MVPdf %>% 
           filter(org_id == which(MVP_org_order2[org] == OOTP_MLB_team_order),
@@ -222,7 +226,7 @@ make_rosters_from_zero <- function() {
             
             if (anyDuplicated(
               bind_rows(
-                created_players %>% select(created_time),
+                created_players %>% select(-created_time),
                 playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
                                         `Birth Month`, `Birth Date`,
                                         First, Last,
@@ -259,6 +263,7 @@ make_rosters_from_zero <- function() {
             rm(playerrow)
           } else {
             # No pitchers left, break
+            print("No pitchers available to edit")
             break
           }
         }; rm(ipitcher)
@@ -334,7 +339,6 @@ make_rosters_from_zero <- function() {
         # Move to FA list
         quick_run_ahk_SendEvent('7')
         Sys.sleep(4)
-        # browser()
         
         if (subsubstep == 0) {
           # Find how many pitchers we need to skip
@@ -347,13 +351,11 @@ make_rosters_from_zero <- function() {
             quick_run_ahk_SendEvent('s', kill_before = ifelse(numskip<=1,T,F))
           }
         } else {
-          # browser()
           numskip <- misc_param$numskip
           if (is.null(numskip) || is.na(numskip) || numskip<0) {
             browser('bad numskip')
           }
         }
-        # browser()
         
         batterdf <- MVPdf %>% 
           filter(org_id == which(MVP_org_order2[org] == OOTP_MLB_team_order),
@@ -382,7 +384,7 @@ make_rosters_from_zero <- function() {
             
             if (anyDuplicated(
               bind_rows(
-                created_players %>% select(created_time),
+                created_players %>% select(-created_time),
                 playerrow %>% transmute(bbref_id, bbrefminors_id, `Birth Year`,
                                         `Birth Month`, `Birth Date`,
                                         First, Last,
@@ -462,13 +464,17 @@ make_rosters_from_zero <- function() {
         r$add_SendEvent("d00a")
         
         # Move first XX players to AA. Some pitchers may already be there.
+        # subsubstep is the number of batters created
+        num_batters_add_AA <- min(25,
+                                  subsubstep,
+                                  25 - (num_pitchers_to_create-25))
         r$add_SendEvent(paste0("", 
                                paste0(rep("ksk",
-                                          min(num_pitchers_to_create-25,
-                                              subsubstep)),
+                                          num_batters_add_AA),
                                       collapse='')))
         
-        if (subsubstep > num_pitchers_to_create - 25) {
+        # If needed, move to A and add players there
+        if (subsubstep > num_batters_add_AA) {
           # Move to A
           r$add_SendEvent("d0a")
           
@@ -476,7 +482,7 @@ make_rosters_from_zero <- function() {
           r$add_SendEvent(
             paste0("", 
                    paste0(rep("ksk", 
-                              subsubstep-(num_pitchers_to_create-25)),
+                              subsubstep-(num_batters_add_AA)),
                           collapse='')))
         }
         
@@ -510,7 +516,6 @@ make_rosters_from_zero <- function() {
   cat("Starting step 2 in make_rosters_from_zero: edit players", "\n")
   
   if (step <= 2.5) {
-    # browser("fix s2")
     
     # Players that can be created, in order
     remainingeditplayersdf <- MVPdf %>% 
@@ -525,6 +530,10 @@ make_rosters_from_zero <- function() {
     done <- FALSE
     while(!done) {
       cat("Step 2, doing next player", "\n")
+      
+      # Need to wait a bit for page to load, was giving errors
+      Sys.sleep(1)
+      
       # Start on roster options page
       stopifnot(is_on_manage_rosters_statistics())
       
@@ -547,7 +556,6 @@ make_rosters_from_zero <- function() {
       is_editable <- is_editable_player()
       
       if (is_editable) {
-        # browser()
         # Find next player to edit
         stopifnot(nrow(remainingeditplayersdf) >= 100)
         if (is_pitcher) {
@@ -596,7 +604,6 @@ make_rosters_from_zero <- function() {
           goal=which(MVP_org_order == OOTP_MLB_team_order[playerrow$org_id]),
           minval=1, maxval=30, keyleft='8', keyright='9'))
         r$add_SendEvent("a")
-        
         
         # Move to A
         r$add_SendEvent("d000a")
@@ -649,7 +656,6 @@ make_rosters_from_zero <- function() {
   cat("Starting step 3 in make_rosters_from_zero: create players", "\n")
   
   if (step <= 3.5) {
-    # browser("fix s3")
     
     # Players that can be created, in order
     # 1. Players specified to be created.
@@ -679,6 +685,10 @@ make_rosters_from_zero <- function() {
         next
       }
       cat("Step 3, creating next player", "\n")
+      
+      # Pause to avoid error
+      Sys.sleep(1)
+      
       # Start on roster options page
       stopifnot(is_on_manage_rosters_statistics())
       
@@ -690,7 +700,6 @@ make_rosters_from_zero <- function() {
       stopifnot(nrow(playerstocreatedf) >= 2)
       playerrow <- playerstocreatedf %>%
         .[1, ]
-      # browser()
       
       # Create player
       make_player_from_row(playerrow, from_zero = FALSE,
@@ -766,10 +775,10 @@ make_rosters_from_zero <- function() {
     quick_run_ahk_SendEvent('sssk99d')
     for (i in 1:30) {
       quick_run_ahk_SendEvent(paste0(
-        'kskksk', #Send two catchers down to A
+        'kskksk', # Send two catchers down to A
         paste(rep('s', 22), collapse=''), # Go to bottom pitcher
         paste(rep('w', 10), collapse=''), # Go up 10 to a SP
-        'kskksk', #Send two SP down to A
+        'kskksk', # Send two SP down to A
         ifelse(i==30,
                'i', # Go back if on last org
                paste0('0', 
@@ -814,6 +823,7 @@ make_rosters_from_zero <- function() {
 }
 if (F) { # Run ----
   # cat("Change window now", "\n")
+  Sys.sleep(1) # Time to release ctrl+enter so that it doesn't affect next line
   KeyboardSimulator::keybd.press("alt+tab")
   Sys.sleep(.2)
   make_rosters_from_zero()

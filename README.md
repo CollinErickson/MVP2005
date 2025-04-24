@@ -1,5 +1,5 @@
 
-# MVP Baseball 2024 (PS2)
+# MVP Baseball 2025 (PS2)
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -111,35 +111,61 @@ for each team, I'm not going to manually fix any of these.
 
 ## Screenshots
 
+### Best and worst teams
+
+The Phillies are the best rated team, the White Sox are the worst rated team.
+Neither are surprising. The Phillies probably shouldn't be the best team since
+the game overvalues speed and fielding, but they're still really good.
+
+![](images/demo/20250411/best_and_worst_teams.png)
+
 ### Top players in the dynasty fantasy draft
 
 The top players look pretty reasonable.
+The rosters I released last fall were too high on pitchers relative to batters.
+I fixed it and it seems like a more even mix.
 
-![](images/demo/fantasy_draft_top_players.png)
+![](images/demo/20250411/fantasy_draft_top_players.png)
 
-### First players in a dynasty fantasy draft
+### First round in a dynasty fantasy draft
 
-Edman is a bit of a reach with the second pick, passing on Witt is sure
-to anger Royals fans.
+I don't understand why the CPU left Witt on the board for so long.
+Judge is a steal at 25.
 
-![](images/demo/fantasy_draft_review.png)
+![](images/demo/20250411/fantasy_draft_review.png)
+
+![](images/demo/20250411/fantasy_draft_review_11_20.png)
+
+![](images/demo/20250411/fantasy_draft_review_21_30.png)
 
 ### Dodgers batting order
 
 Ohtani is a pitcher, and two way players don't really work in this game.
 If you prefer him as a batter than as a pitcher, go to edit players and change
 his position.
+I considered making two players of him, one pitcher and one hitter;
+maybe I'll do it next time if anyone requests it.
+Kiermaier should have been removed and Cartaya should be on the Twins,
+that's an oversight that'll be fixed next time.
 
-![](images/demo/dodgers_batting_order.png)
+![](images/demo/20250411/dodgers_batting_order.png)
 
-### Astros lineup in game
+### Mariners rotation
 
-![](images/demo/astros_lineup_before_game.png)
+The Mariners rotation is very solid.
+In the rosters I released last fall, there were lots of pitchers with pitches
+at 99. I fixed that and now 99 pitches are rare.
 
-### Braves defense in game
+![](images/demo/20250411/mariners_rotation.png)
 
-Gio Urshela gets the start over Matt Olson due to having better stats,
-which is due to my data source. Hopefully we can get better attributes in the
-future.
+### Cubs defense in game
 
-![](images/demo/braves_defense_before_game.png)
+Pete CrowArms is the best name resulting from the character limit.
+
+![](images/demo/20250411/cubs_defense_before_game.png)
+
+### Braves lineup in game
+
+This lineup is loaded.
+
+![](images/demo/20250411/braves_lineup_before_game.png)

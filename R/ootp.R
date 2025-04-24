@@ -8,7 +8,7 @@ if (!exists('round_to_discrete')) {
 
 # Read csv ----
 # ootpdf <- readr::read_csv("C:\\Users\\colli\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 19\\saved_games\\New Game.lg\\import_export\\mlb_rosters2.txt")
-ootpdf <- readr::read_csv("./data/OOTP/ootp25_mlb_rosters2_20240829.txt", skip = 0)
+ootpdf <- readr::read_csv("./data/OOTP/ootp26_mlb_rosters_20250328.txt", skip = 0)
 
 ootpdf
 ootpdf$id %>% stringr::str_sub(1,2) %>% head
@@ -17,12 +17,20 @@ ootpdf$id %>% stringr::str_sub(1,2) %>% head
 ootpdf <- ootpdf[stringr::str_sub(ootpdf$id, 1, 2) != "//",]
 ootpdf
 # View(ootpdf)
-ootpdf %>% arrange(-Curveball)
-ootpdf %>% arrange(-Slider)
+ootpdf %>% arrange(-Curveball) %>% dplyr::relocate(Curveball)
+ootpdf %>% arrange(-Slider) %>% relocate(Slider)
 ootpdf$Position %>% table
 # ootpdf$Stamina[ootpdf$Position == 1] %>% hist
 ootpdf %>% colnames()
 ootpdf %>% arrange(-pmin(`Infield Range`, `OF Range`)) %>% relocate(`Infield Range`, `OF Range`)
+
+# Remove bad rows ----
+# 1. If bbrefminors_id is NA, remove them.
+# 2. If bbrefminors_id is duplicated, remove them.
+ootpdf <- ootpdf %>%
+  filter(!is.na(bbrefminors_id)) %>% 
+  filter(!duplicated(bbrefminors_id))
+
 
 # Begin MVP cols ----
 # Add columns that will go into MVP. Preface them all with MVP_, this will be
@@ -45,17 +53,57 @@ ootpdf_MLB_teammap <- ootpdf %>%
   mutate(org_id=team_id)
 stopifnot(nrow(ootpdf_MLB_teammap) == 30)
 
-# stop('xxx fix teammap')
-ootpdf_teammap <- ootpdf %>% select(team_id, `Team Name`, `League Name`) %>% 
+# 2024, OOTP always started a new org with the MLB roster
+# ootpdf_teammap should have columns:
+# 1. team_id
+# 2. Team Name
+# 3. League name
+# 4. org_id
+# ootpdf_teammap <- ootpdf %>% select(team_id, `Team Name`, `League Name`) %>% 
+#   distinct() %>%
+#   filter(team_id > 0) %>% mutate(isMLB=`League Name` == 'Major League Baseball') %>% 
+#   mutate(org_id=cumsum(isMLB)) %>% group_by(org_id) %>% 
+#   mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
+# 2025, OOTP started a new org with MLB or minor league team, couldn't tell
+# Had to put into a spreadsheet
+ttodf <- readr::read_csv("./data/ootp_team_to_org_map.csv")
+ttodf <- ttodf %>% mutate(new_org=coalesce(new_org, 0)) %>% 
+  mutate(org_id=cumsum(new_org)) %>% 
+  select(-new_org)
+ttldf <- readr::read_csv("./data/ootp_league_to_level_map.csv")
+ootpdf_teammap <- ootpdf %>%
+  select(team_id, `Team Name`, `League Name`) %>% 
   distinct() %>%
-  filter(team_id > 0) %>% mutate(isMLB=`League Name` == 'Major League Baseball') %>% 
-  mutate(org_id=cumsum(isMLB)) %>% group_by(org_id) %>% 
-  mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
+  filter(team_id > 0) %>% 
+  left_join(ttodf, c('team_id', 'Team Name')) %>%
+  left_join(ttldf, c('League Name')) %>% 
+  {
+    stopifnot(!any(is.na(.$org_id)))
+    stopifnot(!any(is.na(.$level_id)))
+    .
+  } %>% 
+  mutate(isMLB=`League Name` == 'Major League Baseball') %>%
+    # mutate(org_id=cumsum(isMLB)) %>% 
+  group_by(org_id) %>%
+  mutate("MLB Team Name" = `Team Name`[1]) %>% 
+  ungroup %>% 
+  arrange(org_id, level_id)
 
+
+# Add the org_id
 ootpdf <- ootpdf %>%
   left_join(ootpdf_teammap %>% select(-team_id, -`League Name`),
             by = c("Team Name"), 
             suffix = c('', '_teammap'))
+# Assert that all teams have a reasonable number of players
+ootpdf %>% filter(!is.na(team_id), level_id < 4.5) %>% 
+  group_by(org_id, level_id) %>% 
+  summarize(N=n(), .groups='drop') %>% {
+    stopifnot(.$N >= 15)
+    stopifnot(.$N <= 50)
+    stopifnot(nrow(.) == 4 * 30)
+  }
+
 
 # Facial Type ----
 # 1: Black
@@ -526,9 +574,9 @@ ootpdf <- ootpdf %>% left_join(
 for (hand in c("L", "R")) {
   # Bad code in first release used LHP for both
   # ootpdf$handbatavg <- (ootpdf$`MVP_Contact vs LHP` + ootpdf$`MVP_Power vs LHP`) / 2
-  stop("Make sure fix to handbatavg worked. I added test later, check that too.")
+  # stop("Make sure fix to handbatavg worked. I added test later, check that too.")
   ootpdf$handbatavg <- (ootpdf[[paste0("MVP_Contact vs ", hand, "HP")]] +
-                          ootpdf[[paste0("MVP_Contact vs ", hand, "HP")]]) / 2
+                          ootpdf[[paste0("MVP_Power vs ", hand, "HP")]]) / 2
   ootpdf$numhot <- case_when(
     ootpdf$handbatavg > 92 ~ 8,
     ootpdf$handbatavg > 88 ~ 7,
@@ -569,9 +617,18 @@ for (hand in c("L", "R")) {
   }; rm(i, hotcoldvec)
   ootpdf <- ootpdf %>% select(-handbatavg, -numhot, -numcold)
 }; rm(hand, heatmap_colname)
-stop("Make sure this test works for heatmaps")
-stopifnot(any(ootpdf$MVP_heat_vL != ootpdf$MVP_heat_vR))
-
+# Check for previous error: heatmaps were the same
+stopifnot(any(ootpdf$MVP_heatmap_vL != ootpdf$MVP_heatmap_vR))
+# Look at some players
+if (F) {
+ootpdf %>%
+  transmute(`MVP_Contact vs LHP`, `MVP_Power vs LHP`, MVP_heatmap_vL,
+         `MVP_Contact vs RHP`, `MVP_Power vs RHP`, MVP_heatmap_vR,
+         LastName, FirstName, r=runif(n())) %>%
+  arrange(r) %>% 
+  print(n=30)
+  # View(title='heatmap')
+}
 
 # MVP OverallEst
 ootpdf <- ootpdf %>% 
@@ -604,7 +661,8 @@ ootpdf <- ootpdf %>%
                               `MVP_Changeup Movement`, 0, na.rm=T)) / 5 *
       ifelse(`MVP_First Position`=="SP", 1, .9), # Downgrade RP
     TRUE ~ NA
-  ))# %>% arrange(-MVP_OverallEst) %>% 
+  )) %>% # %>% arrange(-MVP_OverallEst) %>% 
+  mutate(MVP_OverallEst=round(MVP_OverallEst, 2))
 # relocate(MVP_OverallEst, LastName, FirstName,
 #          `MVP_Contact vs LHP`, `MVP_Contact vs RHP`,
 #          `MVP_Power vs LHP`, `MVP_Power vs RHP`,
@@ -804,6 +862,11 @@ stopifnot(nrow(MVPdf %>%
                         is.na(bbrefminors_id))) == 0)
 # Some of these IDs are duplicated!!!
 # stopifnot(!anyDuplicated(MVPdf$bbrefminors_id))
+
+# Ensure no duplicates ----
+# There didn't used to be duplicate issue, then it happened April 2025
+stopifnot(!(MVPdf$bbrefminors_id %>% anyDuplicated))
+stopifnot(!(MVPdf$bbref_id %>% {.[!is.na(.)]} %>% anyDuplicated()))
 
 # Write csv ----
 if (F) {

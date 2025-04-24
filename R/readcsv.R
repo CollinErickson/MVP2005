@@ -1,7 +1,8 @@
 library(dplyr)
 
 # MVPdf <- readr::read_csv("./data/MVP 2005 Baseball - 2024 Player ratings test - Players2024.csv")
-MVPdf <- readr::read_csv("./data/MVProsters/MVProsters_2024-09-17.csv")
+# MVPdf <- readr::read_csv("./data/MVProsters/MVProsters_2024-09-17.csv")
+MVPdf <- readr::read_csv("./data/MVProsters/MVProsters_2025-04-11.csv")
 MVPdf
 
 # df <- MVPdf %>% filter(First=='Chris', Last=='Sale')

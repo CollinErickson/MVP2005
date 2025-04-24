@@ -75,12 +75,26 @@ and my program often gets stuck for an unknown reason.
 
 1. Get rosters csv from OOTP.
 
-1. Update the stat map csv.
+1. Update the stat map csv (in Drive and download to data folder).
 
-1. Update the stat override csv.
+1. Update the stat override csv (in Drive and download to data folder).
+
+1. Update the top prospects list by updating `./r/MLBprospects.R`.
+
+1. Update the 40 man lists by updating `./r/bbref_40manrosters.R`.
+
+1. Update the people csv by updating `./r/get_people_files.R`.
 
 1. Run `./r/ootp.R` to update MVPdf. Make sure it runs the last section
-of code that saves the csv.
+of code that saves the csv. Check for errors: make sure that recently traded
+players are on correct team, make sure that best players look right, check for
+best players that won't get created (e.g., Roki Sasaki wouldn't have been
+created).
+
+1. Change the csv file to read in in `./r/readcsv.R`.
+
+1. Make sure that created_players.csv and
+create_rosters_from_zero_progress.csv have been deleted.
 
 1. Start MVP Baseball 2005 in PCSX2.
 Press tab so that it runs at double speed.
@@ -89,27 +103,29 @@ with no profile, or the favorite team can be set to this).
 Maybe turn off all songs in the jukebox so that it doesn't keep saying
 the song name in the bottom right corner.
 Load the Zero2 roster file.
-(Or Zero roster file, then move all editable players on MLB rosters to
-free agents.) 
+Before this create a new memory card with the MVP05Rosters-YYYYMMDD and format
+it by entering the PS2 BIOS, which should ask if you want it to format it
+(or copy a previous memory card, rename it, remove the existing file).
 If using a computer other than my HP Pavilion, you will likely need to edit the
-R functions that take screenshots to see what PCSX2 is showing.
-
-1. Make sure that created_players.csv and
-create_rosters_from_zero_progress.csv have been deleted.
+R functions that take screenshots to see what PCSX2 is showing!
 
 
 1. Run the code at the bottom of `./r/make_rosters_from_zero.R`. This takes
 about 50 hours. Use ctrl+shift+2 to interrupt occasionally to save to roster
-file. 
+file. Save it to a file named YYYYMMDD. Also save backups of this during the
+process so that you don't lose 50 hours of progress on accident.
 Remaining bugs:
-(1) It gave a bunch of Windows errors that it wasn't able
+    1. It gave a bunch of Windows errors that it wasn't able
 to access a file. Probably either when it updates created_players.csv or
 create_rosters_from_zero_progress.csv. It didn't seem to be an actual issue.
 The error only started showing up for the last handful of orgs.
 My best guess is that created_players.csv took too long to save as it got 
 longer. Maybe I should add a sleep option when it's longer than 1,300 players.
-(2) I gave each team 27 pitchers and 39 hitters. This was too many, as later
+    1. I gave each team 27 pitchers and 39 hitters. This was too many, as later
 teams ended up with maybe a pitcher or two less than, and only ~29 hitters.
+    1. Hitting miss rate is backwards. You can tell since pitchers are 99/99 on
+fastball, then 0/0 for curveball and slider. I already fixed
+this in the statmap file, so it should be good for next with no additional work.
 
 1. Look through for players that were made incorrectly.
 I don't know why, but three batters on the Yankees were made incorrectly,
@@ -118,3 +134,8 @@ Also look for players that are clearly too good. Brett Phillips was one of the
 best players on the Yankees, but he had stats as a batter, but now he switched
 to be a pitcher. I just deleted him.
 
+1. Save rosters to memory card. Save memory card to `./memcards/release`.
+Update the screenshots and text in the README.md file, then build the HTML file.
+Commit and push.
+
+1. Tag the release on GitHub with the new memory card file.

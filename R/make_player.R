@@ -859,9 +859,18 @@ make_player_from_row <- function(df, from_zero=FALSE,
   
   
   # Save player ----
+  # add(
+  #   '\n\n\t; Save player
+  #     	    SendEvent "usk" ; \t Save player
+  #           ')
+  # It was fine 99+% of time, but got stuck here once
   add(
     '\n\n\t; Save player
-      	    SendEvent "usk" ; \t Save player
+      	    SendEvent "u" ; \t Save player
+            Sleep 100 ; 
+      	    SendEvent "s" ; \t Save player
+            Sleep 100 ; 
+      	    SendEvent "k" ; \t Save player
             ')
   
   # # End ahk
@@ -924,7 +933,8 @@ make_player_from_row <- function(df, from_zero=FALSE,
   r$run_ahk("tmp_make_player")
   
   
-  cat("Finished make_player_from_row", "\n")
+  cat("Finished make_player_from_row", df$First, df$Last, df$bbrefminors_id,
+      as.character(Sys.time()), "\n")
   
   # Done ----
   return()

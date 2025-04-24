@@ -1,3 +1,5 @@
+library(dplyr)
+
 suffixes <- c(0:9, letters[1:6])
 
 for (i in suffixes) {
@@ -22,6 +24,7 @@ for (i in suffixes) {
 playersdf <- bind_rows(playersdflist)
 
 playersdf %>% filter(name_last=="Judge")
+playersdf %>% filter(name_last=="Judge", name_first=="Aaron")
 
 readr::write_csv(playersdf, "./data/people/people.csv")
 
