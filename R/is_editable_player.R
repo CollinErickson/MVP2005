@@ -17,6 +17,7 @@ is_editable_player <- function() {
     as.integer(magick::image_crop(p_true, "300x100+420+130")[[1]][1:3,,])
   ))
   if (edit_player_diff > 1) {
+    # browser()
     stop("Error in is_editable_player: Not on edit player screen")
   }
   

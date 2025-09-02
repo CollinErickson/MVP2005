@@ -96,24 +96,32 @@ created).
 1. Make sure that created_players.csv and
 create_rosters_from_zero_progress.csv have been deleted.
 
+1. Copy memcards/misc/MVP05Rosters-Zero.ps2, replace "Zero" with "YYYYMMDD"
+using the date of the csv file. Move this to the PCSX2/memcards folder.
+In PCSX2 unload all memcards, load the new memcard into the first slot.
+
 1. Start MVP Baseball 2005 in PCSX2.
+The window should be fully expanded, but not full screen.
 Press tab so that it runs at double speed.
+PCSX2 should be at 2x resolution in graphics settings.
+Make sure red shift app (f.lux) won't make screen too red, turn temp to 2600k?
 Make sure the default team is set to Boston Red Sox (this is true
 with no profile, or the favorite team can be set to this).
 Maybe turn off all songs in the jukebox so that it doesn't keep saying
 the song name in the bottom right corner.
 Load the Zero2 roster file.
-Before this create a new memory card with the MVP05Rosters-YYYYMMDD and format
-it by entering the PS2 BIOS, which should ask if you want it to format it
-(or copy a previous memory card, rename it, remove the existing file).
 If using a computer other than my HP Pavilion, you will likely need to edit the
 R functions that take screenshots to see what PCSX2 is showing!
 
 
 1. Run the code at the bottom of `./r/make_rosters_from_zero.R`. This takes
 about 50 hours. Use ctrl+shift+2 to interrupt occasionally to save to roster
-file. Save it to a file named YYYYMMDD. Also save backups of this during the
+file. Save it to a roster file named YYYYMMDD. Also save backups of this during the
 process so that you don't lose 50 hours of progress on accident.
+When saving backups while running, add step-org-substep-subsubstep to the file
+name so that you know in case you need to go back to it.
+If it does crash and anything is lost, you need to edit created_players.csv
+and create_rosters_from_zero_progress.csv back to the last save point.
 Remaining bugs:
     1. It gave a bunch of Windows errors that it wasn't able
 to access a file. Probably either when it updates created_players.csv or
@@ -126,6 +134,8 @@ teams ended up with maybe a pitcher or two less than, and only ~29 hitters.
     1. Hitting miss rate is backwards. You can tell since pitchers are 99/99 on
 fastball, then 0/0 for curveball and slider. I already fixed
 this in the statmap file, so it should be good for next with no additional work.
+    1. Pitchers are a bit better than hitters (8/29/2025). I don't have a good
+    idea of what should be adjusted.
 
 1. Look through for players that were made incorrectly.
 I don't know why, but three batters on the Yankees were made incorrectly,
@@ -139,3 +149,5 @@ Update the screenshots and text in the README.md file, then build the HTML file.
 Commit and push.
 
 1. Tag the release on GitHub with the new memory card file.
+
+1. Share online.

@@ -8,7 +8,7 @@ if (!exists('round_to_discrete')) {
 
 # Read csv ----
 # ootpdf <- readr::read_csv("C:\\Users\\colli\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 19\\saved_games\\New Game.lg\\import_export\\mlb_rosters2.txt")
-ootpdf <- readr::read_csv("./data/OOTP/ootp26_mlb_rosters_20250328.txt", skip = 0)
+ootpdf <- readr::read_csv("./data/OOTP/ootp26_mlb_rosters_20250819.txt", skip = 0)
 
 ootpdf
 ootpdf$id %>% stringr::str_sub(1,2) %>% head
@@ -83,8 +83,9 @@ ootpdf_teammap <- ootpdf %>%
     .
   } %>% 
   mutate(isMLB=`League Name` == 'Major League Baseball') %>%
-    # mutate(org_id=cumsum(isMLB)) %>% 
+  # mutate(org_id=cumsum(isMLB)) %>% 
   group_by(org_id) %>%
+  arrange(!isMLB) %>% 
   mutate("MLB Team Name" = `Team Name`[1]) %>% 
   ungroup %>% 
   arrange(org_id, level_id)
@@ -100,10 +101,9 @@ ootpdf %>% filter(!is.na(team_id), level_id < 4.5) %>%
   group_by(org_id, level_id) %>% 
   summarize(N=n(), .groups='drop') %>% {
     stopifnot(.$N >= 15)
-    stopifnot(.$N <= 50)
+    stopifnot(.$N <= 70) # Used to use 50, but OOTP had bug
     stopifnot(nrow(.) == 4 * 30)
   }
-
 
 # Facial Type ----
 # 1: Black
@@ -161,7 +161,7 @@ ootpdf <- ootpdf %>%
 # 1-8
 # 1, 3-5 are okay for Yankees
 ootpdf <- ootpdf %>% 
-  mutate("MVP_Facial Hair"=ifelse(org_id==3,
+  mutate("MVP_Facial Hair"=ifelse(coalesce(org_id, 31)==3,
                                   sample(c(1,3:5), size=n(), replace=T),
                                   sample(1:8, size=n(), replace=T)))
 
@@ -199,6 +199,13 @@ ootpdf <- ootpdf %>%
 ootpdf$Position[ootpdf$Position == 0] <- 12
 # Change Ohtani to be SP. 
 ootpdf$Position[ootpdf$LastName=="Ohtani" & ootpdf$FirstName=='Shohei'] <- 11
+# Duplicate Ohtani as a RF (MVP doesn't allow DH to be primary position)
+ootpdf <- bind_rows(
+  ootpdf,
+  ootpdf %>% filter(LastName=='Ohtani' & FirstName=='Shohei') %>% 
+    mutate(Position=9,
+           FirstName='Ohtani', LastName='Shohei',
+           MVP_First='Ohtani', MVP_Last='Shohei'))
 
 ootpdf$Position %>% table
 # ootpdf %>%
@@ -234,7 +241,7 @@ ootpdf <- ootpdf %>% mutate(
     Position==7 ~ 'LF',
     Position==8 ~ 'CF',
     Position==9 ~ 'RF',
-    Position==10 ~ '1B',
+    Position==10 ~ '1B', # MVP doesn't allow DH as primary position
     TRUE ~ 'ERROR'
   )
   # ) %>% select(Position, `MVP_First Position`) %>% table # to check
@@ -249,6 +256,7 @@ ootpdf <- ootpdf %>% mutate(
     Position==7 ~ 'OF',
     Position==8 ~ 'OF',
     Position==9 ~ 'OF',
+    Position==10 ~ '1B',
     TRUE ~ ''
   )
   # ) %>% select(`MVP_First Position`, `MVP_Second Position`) %>% table # to check
@@ -562,11 +570,32 @@ ootpdf <- ootpdf %>%
 
 # 40 man roster ----
 source("./R/bbref_40manrosters.R")
+# ootpdf <- ootpdf %>% left_join(
+#   tibble(bbref_id=unlist(bbref_40man), on40manroster=TRUE),
+#   c("bbref_id")
+# ) %>% mutate(
+#   on40manroster=coalesce(on40manroster, FALSE)
+# )
+# Change how this works to get org to fix OOTP players on wrong orgs
 ootpdf <- ootpdf %>% left_join(
-  tibble(bbref_id=unlist(bbref_40man), on40manroster=TRUE),
+  bbref_40man_df,
   c("bbref_id")
 ) %>% mutate(
   on40manroster=coalesce(on40manroster, FALSE)
+)
+# %>% relocate(bbref_id, on40manroster, bbref_org_abbr)
+#%>% View('bbref40after')
+
+# Prefer the org from bbref 40 man roster over OOTP
+# Aug '25 OOTP had Gerrit Cole on Syracuse Mets
+# org_map <- readr::read_csv("./data/org_map.csv")
+ootpdf <- ootpdf %>% mutate(
+  org_id=coalesce(org_id_from_bbref, org_id),
+  `Team Name`=coalesce(team_name_from_bbref, `Team Name`),
+  `MLB Team Name`=coalesce(team_name_from_bbref, `MLB Team Name`)
+) %>% select(
+  -org_id_from_bbref,
+  -team_name_from_bbref
 )
 
 # Heatmaps ----
@@ -621,12 +650,12 @@ for (hand in c("L", "R")) {
 stopifnot(any(ootpdf$MVP_heatmap_vL != ootpdf$MVP_heatmap_vR))
 # Look at some players
 if (F) {
-ootpdf %>%
-  transmute(`MVP_Contact vs LHP`, `MVP_Power vs LHP`, MVP_heatmap_vL,
-         `MVP_Contact vs RHP`, `MVP_Power vs RHP`, MVP_heatmap_vR,
-         LastName, FirstName, r=runif(n())) %>%
-  arrange(r) %>% 
-  print(n=30)
+  ootpdf %>%
+    transmute(`MVP_Contact vs LHP`, `MVP_Power vs LHP`, MVP_heatmap_vL,
+              `MVP_Contact vs RHP`, `MVP_Power vs RHP`, MVP_heatmap_vR,
+              LastName, FirstName, r=runif(n())) %>%
+    arrange(r) %>% 
+    print(n=30)
   # View(title='heatmap')
 }
 
@@ -682,10 +711,10 @@ ootpdf <- ootpdf %>%
   # When creating in order without certain total count
   group_by(org_id, IsPitcher) %>% 
   arrange(#ifelse(MVP_include,0,1),
-          # ifelse(level_id<1.5, -MVP_OverallEst, 1e3), # MLB players first
-          ifelse(on40manroster, -MVP_OverallEst, 1e3), # 40man players first
-          ifelse(is.na(MLB_prospect_rank), 100, MLB_prospect_rank), # Keep prospects
-          -MVP_OverallEst # Keep best players
+    # ifelse(level_id<1.5, -MVP_OverallEst, 1e3), # MLB players first
+    ifelse(on40manroster, -MVP_OverallEst, 1e3), # 40man players first
+    ifelse(is.na(MLB_prospect_rank), 100, MLB_prospect_rank), # Keep prospects
+    -MVP_OverallEst # Keep best players
   ) %>% 
   mutate(MVP_org_position_create_rank=1:n()) %>% 
   mutate(MVP_org_position_rank=1:n()) %>% 
@@ -701,7 +730,7 @@ if (F) {
   #   relocate(MVP_OverallEst, MLB_prospect_rank, MVP_include, 
   #            MVP_org_position_rank, FirstName, LastName) %>% View
   View(ootpdf %>% filter(org_id==3) %>% arrange(MVP_org_position_create_rank, IsPitcher) %>% 
-    relocate(MVP_org_position_create_rank, MVP_OverallEst, on40manroster, MLB_prospect_rank, FirstName, LastName))
+         relocate(MVP_org_position_create_rank, MVP_OverallEst, on40manroster, MLB_prospect_rank, FirstName, LastName))
 }
 # stopifnot(
 #   ootpdf %>% filter(team_id>0, MVP_include) %>% group_by(org_id) %>% 
@@ -865,11 +894,15 @@ stopifnot(nrow(MVPdf %>%
 
 # Ensure no duplicates ----
 # There didn't used to be duplicate issue, then it happened April 2025
-stopifnot(!(MVPdf$bbrefminors_id %>% anyDuplicated))
-stopifnot(!(MVPdf$bbref_id %>% {.[!is.na(.)]} %>% anyDuplicated()))
+stopifnot(!(MVPdf %>% filter(bbrefminors_id!='otani-000sho') %>%
+              .$bbrefminors_id %>% anyDuplicated))
+stopifnot(!(MVPdf %>% filter(bbref_id!='ohtansh01') %>%
+              .$bbref_id %>% {.[!is.na(.)]} %>% anyDuplicated()))
 
 # Write csv ----
 if (F) {
   readr::write_csv(MVPdf, 
                    paste0("./data/MVProsters/MVProsters_", Sys.Date(), ".csv"))
 }
+
+cat("Reached bottom of ootp.R\n")

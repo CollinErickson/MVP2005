@@ -267,6 +267,13 @@ adjustLRcts <- function(start, goal, maxval=100, minval=0,
                         keyright='d', keyleft='a') {
   # maxval: contact/power go 0-100, speed goes 0-99
   # minval: stamina goes 0-99
+  if (missing(start)) {
+    stop('start is missing in adjustLRcts')
+  }
+  if (missing(goal)) {
+    stop('goal is missing in adjustLRcts')
+  }
+  
   if (abs(start - goal) <= .55*(maxval-minval)) { # Simple
     adjustLR(goal - start,
              keyright = keyright, keyleft = keyleft)
@@ -488,7 +495,10 @@ press_spacebar_when_done <- function() {
 }
 
 screenshot_and_read <- function(file) {
-  screenshot::screenshot(file=file)
+  ss_out <- screenshot::screenshot(file=file)
+  if (ss_out == '') {
+    stop("Screenshot didn't work properly")
+  }
   magick::image_read(file)
 }
 

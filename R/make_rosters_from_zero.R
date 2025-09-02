@@ -105,6 +105,7 @@ make_rosters_from_zero <- function() {
     created_players <- readr::read_csv("./data/created_players.csv")
     stopifnot(!anyDuplicated(
       created_players %>%
+        filter(bbrefminors_id != 'otani-000sho') %>% 
         select(bbrefminors_id, `Birth Year`, `Birth Month`, `Birth Date`)))
   } else {
     created_players <- tibble(bbrefminors_id=character(),

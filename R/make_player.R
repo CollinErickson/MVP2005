@@ -340,9 +340,9 @@ make_player_from_row <- function(df, from_zero=FALSE,
   '
   )
   if (from_zero) {
-    add(adjustLRcts(1, df$`Facial Hair`, minval=1, maxval=8))
+    add(adjustLRcts(1, coalesce(df$`Facial Hair`,1), minval=1, maxval=8))
   } else {
-    add(adjustLRcts(4, df$`Facial Hair`, minval=1, maxval=8))
+    add(adjustLRcts(4, coalesce(df$`Facial Hair`,1), minval=1, maxval=8))
   }
   
   

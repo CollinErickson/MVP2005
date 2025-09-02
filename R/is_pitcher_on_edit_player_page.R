@@ -43,6 +43,7 @@ is_pitcher_on_edit_player_page <- function(img) {
   if (abs(avg3-136.3333) < 1) {
     return(FALSE)
   }
+  
   stop("Error in is_pitcher_on_edit_player_page: Not on the player list screen")
 }
 if (F) {
