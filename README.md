@@ -38,6 +38,23 @@ card settings, and put the memory card in one of the two slots.
 I haven't tried this. If you get this to work, let me know what steps you
 did and I'll put it here.
 
+Reddit user u/FettryZepin
+[shared the steps they used to get this working on PS2](https://www.reddit.com/r/baseball/comments/1k7orbn/comment/n228jcf/):
+
+> 1. Download your roster save then download mymc, a PS2 Memory Card Image Utility
+>
+> 2. Open the tool and open the custom roster within it, you should see the MVP save icon in the window
+>
+> 3. Export the save as a .psu (it will already be set to this)
+>
+> 4. Put it on a flash drive and plug that into your PS2 console
+>
+> 5. Open up ULaunchELF and copy the .psu file from the /mass window
+>
+> 6. Go onto your desired memory card on ULaunchELF and do a psuPaste
+>
+> 7. Load up MVP 2005 and go onto the roster page, then load the roster up. Then save it anew under whatever name you like. Then load that new roster in
+
 ## FAQs
 
 ### I'm confused. What am I supposed to do?
