@@ -148,6 +148,7 @@ to be a pitcher. I just deleted him.
 Update the screenshots and text in the README.md file, then build the HTML file.
 Commit and push.
 
-1. Tag the release on GitHub with the new memory card file.
+1. Tag the release on GitHub with the new memory card file. Make sure the .ps2
+file is added to the release.
 
-1. Share online.
+1. Share online (Reddit and Discord).

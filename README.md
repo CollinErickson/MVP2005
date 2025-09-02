@@ -59,6 +59,9 @@ Also please share with your friends!
 Some help could be used to make better attributes, but it's not straightforward.
 If you want to help, you can email me.
 
+Join the Discord to contribute to the discussion and feedback:
+https://discord.gg/qajkE965AD
+
 ### Will there be future updates?
 
 I can easily rerun the code to remake the updated rosters, but I will likely
@@ -71,6 +74,9 @@ you are interested.
 On this page, click on "Watch", then "Custom", then check "Releases" and 
 click apply. You should receive an email when there is a new release.
 (I have never actually tried this, correct me if I'm wrong.)
+
+I created a Discord that I will also post in when there are future updates:
+https://discord.gg/qajkE965AD. Please join for updates and discussion.
 
 ### Why are the players from 2005 on the minor league teams with horrible stats?
 
