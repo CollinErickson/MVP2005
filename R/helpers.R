@@ -497,6 +497,7 @@ press_spacebar_when_done <- function() {
 screenshot_and_read <- function(file) {
   ss_out <- screenshot::screenshot(file=file)
   if (ss_out == '') {
+    cat("Screenshot should have been saved to:", file, "\n")
     stop("Screenshot didn't work properly")
   }
   magick::image_read(file)

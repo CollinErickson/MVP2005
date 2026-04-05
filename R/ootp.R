@@ -8,9 +8,12 @@ if (!exists('round_to_discrete')) {
 
 # Read csv ----
 # ootpdf <- readr::read_csv("C:\\Users\\colli\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 19\\saved_games\\New Game.lg\\import_export\\mlb_rosters2.txt")
-ootpdf <- readr::read_csv("./data/OOTP/ootp26_mlb_rosters_20250819.txt", skip = 0)
+ootpdf <- readr::read_csv("./data/OOTP/ootp27_mlb_rosters_20260313.txt", skip = 0)
 
 ootpdf
+
+# If this fails, it's because you didn't delete the comments at the
+# top of the txt file.
 ootpdf$id %>% stringr::str_sub(1,2) %>% head
 
 # Remove the team ID rows
@@ -66,7 +69,18 @@ stopifnot(nrow(ootpdf_MLB_teammap) == 30)
 #   mutate("MLB Team Name" = `Team Name`[1], level_id=1:n())
 # 2025, OOTP started a new org with MLB or minor league team, couldn't tell
 # Had to put into a spreadsheet
+# Steps:
+#  1. 
+# readr::write_csv(
+#   ootpdf %>% select(team_id, `Team Name`) %>% distinct %>% 
+#     filter(team_id > 0.5) %>% 
+#     mutate(new_org=''),
+#   "./data/ootp_team_to_org_map.csv")
+# 2. Go through that spreadsheet, put a 1 in the new_org column
+#    whenever the team is from a new org. You will have to look up
+#    some minor league team affiliations.
 ttodf <- readr::read_csv("./data/ootp_team_to_org_map.csv")
+stopifnot(sum(!is.na(ttodf$new_org)) == 30)
 ttodf <- ttodf %>% mutate(new_org=coalesce(new_org, 0)) %>% 
   mutate(org_id=cumsum(new_org)) %>% 
   select(-new_org)
@@ -535,29 +549,45 @@ for (irow in 1:nrow(statmap)) {
 # Jersey number
 ootpdf['MVP_Jersey Number'] <- as.integer(pmin(pmax(ootpdf$UniformNumber,0),99))
 
+# IDs ----
+
+if (!exists("peopledf")) {
+  peopledf <- readr::read_csv("./data/people/people.csv")
+}
+
+# Add some IDs that will be used later
+ootpdf <- ootpdf %>% left_join(
+  peopledf %>% transmute(bbrefminors_id=key_bbref_minors,
+                         MLB_ID=as.character(as.integer(key_mlbam))),
+  by='bbrefminors_id'
+)
+
+
 # Prospect ranking ----
 # TODO
 # if (!exists("FGdf")) {
 #   source("./R/FGprospects.R")
 # }
 if (!exists('MLB_prospectsdf')) {
-  MLB_prospectsdf <- readr::read_csv(file='./data/MLBprospects.csv')
+  MLB_prospectsdf <- readr::read_csv(file='./data/MLBprospects.csv') %>% 
+    mutate(MLB_ID=as.character(as.integer(MLBID))) %>% 
+    select(-MLBID)
 }
 
-if (!exists("peopledf")) {
-  peopledf <- readr::read_csv("./data/people/people.csv")
-}
+
 # Very few FG IDs. Switch over to MLB prospect rankings
 # FGdf %>% inner_join(peopledf %>% transmute(FGid=as.character(key_fangraphs),
 #                                            bbref_id=as.character(key_bbref)),
 #                     by=c(FGid="FGid"))
 # Join to peopledf to get bbrefminors_id
 MLB_prospectsdf2 <- MLB_prospectsdf %>%
-  transmute(MLB_URL=URL, MLB_prospect_rank=rank, MLBID=as.character(MLBID)) %>% 
-  inner_join(peopledf %>% transmute(MLBID=as.character(key_mlbam),
-                                    bbref_id=as.character(key_bbref),
-                                    bbrefminors_id=as.character(key_bbref_minors)),
-             by=c(MLBID="MLBID")) #%>% pull(bbrefminors_id) %>% is.na %>% table
+  transmute(MLB_URL=URL, MLB_prospect_rank=rank, MLB_ID)
+# transmute(MLB_URL=URL, MLB_prospect_rank=rank, MLBID=as.character(MLBID)) %>% 
+# inner_join(peopledf %>% 
+#              transmute(MLBID=as.character(key_mlbam),
+#                       bbref_id=as.character(key_bbref),
+#                       bbrefminors_id=as.character(key_bbref_minors)),
+#            by=c(MLBID="MLBID")) #%>% pull(bbrefminors_id) %>% is.na %>% table
 MLB_prospectsdf2
 # Join that to ootpdf
 # ootpdf %>% left_join(MLB_prospectsdf2 %>% select(-bbref_id), by='bbrefminors_id') %>% 
@@ -565,38 +595,71 @@ MLB_prospectsdf2
 #   arrange(MLB_prospect_rank)
 #
 ootpdf <- ootpdf %>% 
+  # left_join(MLB_prospectsdf2 %>%
+  #             select(-bbref_id), by='bbrefminors_id', suffix = c("","_MLBP"))
   left_join(MLB_prospectsdf2 %>%
-              select(-bbref_id), by='bbrefminors_id', suffix = c("","_MLBP"))
+              # select(-bbref_id),
+              select(-MLB_URL),
+            by='MLB_ID', suffix = c("","_MLBP"))
 
 # 40 man roster ----
-source("./R/bbref_40manrosters.R")
-# ootpdf <- ootpdf %>% left_join(
-#   tibble(bbref_id=unlist(bbref_40man), on40manroster=TRUE),
-#   c("bbref_id")
-# ) %>% mutate(
-#   on40manroster=coalesce(on40manroster, FALSE)
-# )
-# Change how this works to get org to fix OOTP players on wrong orgs
-ootpdf <- ootpdf %>% left_join(
-  bbref_40man_df,
-  c("bbref_id")
-) %>% mutate(
-  on40manroster=coalesce(on40manroster, FALSE)
-)
-# %>% relocate(bbref_id, on40manroster, bbref_org_abbr)
-#%>% View('bbref40after')
+if (F) {
+  # Get 40 man from BBref
+  
+  source("./R/bbref_40manrosters.R")
+  # ootpdf <- ootpdf %>% left_join(
+  #   tibble(bbref_id=unlist(bbref_40man), on40manroster=TRUE),
+  #   c("bbref_id")
+  # ) %>% mutate(
+  #   on40manroster=coalesce(on40manroster, FALSE)
+  # )
+  # Change how this works to get org to fix OOTP players on wrong orgs
+  ootpdf <- ootpdf %>% left_join(
+    bbref_40man_df,
+    c("bbref_id")
+  ) %>% mutate(
+    on40manroster=coalesce(on40manroster, FALSE)
+  )
+  # %>% relocate(bbref_id, on40manroster, bbref_org_abbr)
+  #%>% View('bbref40after')
+  
+  # Prefer the org from bbref 40 man roster over OOTP
+  # Aug '25 OOTP had Gerrit Cole on Syracuse Mets
+  # org_map <- readr::read_csv("./data/org_map.csv")
+  ootpdf <- ootpdf %>% mutate(
+    org_id=coalesce(org_id_from_bbref, org_id),
+    `Team Name`=coalesce(team_name_from_bbref, `Team Name`),
+    `MLB Team Name`=coalesce(team_name_from_bbref, `MLB Team Name`)
+  ) %>% select(
+    -org_id_from_bbref,
+    -team_name_from_bbref
+  )
+} else if (T) {
+  # Get 40 man from MLB
+  source("./R/MLB_40manrosters.R")
+  
+  ootpdf <- ootpdf %>% left_join(
+    MLB_40man_df,
+    c("MLB_ID")
+  ) %>% mutate(
+    on40manroster=coalesce(on40manroster, FALSE)
+  )
+  
+  # Prefer the org from MLB 40 man roster over OOTP
+  # Aug '25 OOTP had Gerrit Cole on Syracuse Mets
+  # org_map <- readr::read_csv("./data/org_map.csv")
+  ootpdf <- ootpdf %>% mutate(
+    org_id=coalesce(org_id_from_MLB, org_id),
+    `Team Name`=coalesce(team_name_from_MLB, `Team Name`),
+    `MLB Team Name`=coalesce(team_name_from_MLB, `MLB Team Name`)
+  ) %>% select(
+    -org_id_from_MLB,
+    -team_name_from_MLB
+  )
+  
+}
 
-# Prefer the org from bbref 40 man roster over OOTP
-# Aug '25 OOTP had Gerrit Cole on Syracuse Mets
-# org_map <- readr::read_csv("./data/org_map.csv")
-ootpdf <- ootpdf %>% mutate(
-  org_id=coalesce(org_id_from_bbref, org_id),
-  `Team Name`=coalesce(team_name_from_bbref, `Team Name`),
-  `MLB Team Name`=coalesce(team_name_from_bbref, `MLB Team Name`)
-) %>% select(
-  -org_id_from_bbref,
-  -team_name_from_bbref
-)
+
 
 # Heatmaps ----
 # Give num hot/cold based on Contact+Power for that hand

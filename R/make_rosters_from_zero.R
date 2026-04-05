@@ -61,11 +61,16 @@ is_on_manage_rosters_statistics <- function() {
   return(on_mrs)
 }
 
+write_created_players_csv <- function(created_players) {
+  readr::write_csv(created_players, "./data/created_players.csv")
+  Sys.sleep(nrow(created_players)/1e3)
+}
+
 
 make_rosters_from_zero <- function() {
   save_progress_file_path <- "./data/create_rosters_from_zero_progress.csv"
   if (file.exists(save_progress_file_path)) {
-    save_progress_df <- readr::read_csv(save_progress_file_path)
+    save_progress_df <- readr::read_csv(save_progress_file_path, lazy=FALSE)
     step <- save_progress_df$step
     org <- save_progress_df$org
     substep <- save_progress_df$substep
@@ -102,7 +107,7 @@ make_rosters_from_zero <- function() {
   
   # This csv tracks which players have been created
   if (file.exists("./data/created_players.csv")) {
-    created_players <- readr::read_csv("./data/created_players.csv")
+    created_players <- readr::read_csv("./data/created_players.csv", lazy=FALSE)
     stopifnot(!anyDuplicated(
       created_players %>%
         filter(bbrefminors_id != 'otani-000sho') %>% 
@@ -141,6 +146,10 @@ make_rosters_from_zero <- function() {
     
     # Save progress
     update_progress_file(step = 1, org=1, substep=1)
+    
+    # Save memcard and progress
+    #  Do this now to test that it's working, file names could be wrong
+    save_memcard()
   }
   
   # Step 1: Do one org ----
@@ -251,7 +260,7 @@ make_rosters_from_zero <- function() {
                                       org_id, level_id,
                                       created_time=(Sys.time()))
             )
-            readr::write_csv(created_players, "./data/created_players.csv")
+            write_created_players_csv(created_players)
             
             # Move up to top of list
             if (ipitcher < num_pitchers_to_create) {
@@ -409,7 +418,7 @@ make_rosters_from_zero <- function() {
                                       org_id, level_id,
                                       created_time=(Sys.time()))
             )
-            readr::write_csv(created_players, "./data/created_players.csv")
+            write_created_players_csv(created_players)
             
             # Move up to top of list
             if (ibatter < num_batters_to_create) {
@@ -503,6 +512,9 @@ make_rosters_from_zero <- function() {
       org <- org + 1
       substep <- 1
       update_progress_file(1, i_org+1, 1)
+      
+      # Save backup
+      save_memcard()
     }; rm(i_org); # End i_org
     
     # Increment step
@@ -583,7 +595,7 @@ make_rosters_from_zero <- function() {
                                   org_id, level_id,
                                   created_time=(Sys.time()))
         )
-        readr::write_csv(created_players, "./data/created_players.csv")
+        write_created_players_csv(created_players)
         
         # Remove from remaining player df
         nrows_before <- nrow(remainingeditplayersdf)
@@ -650,6 +662,9 @@ make_rosters_from_zero <- function() {
     subsubstep <- 0
     # Save progress
     update_progress_file(step = 3, org=NA, substep=substep, subsubstep=subsubstep)
+    
+    # Save memory card
+    save_memcard()
   }
   
   # Step 3: Create 25 players ----
@@ -716,7 +731,7 @@ make_rosters_from_zero <- function() {
                                 org_id, level_id,
                                 created_time=(Sys.time()))
       )
-      readr::write_csv(created_players, "./data/created_players.csv")
+      write_created_players_csv(created_players)
       
       # Remove from remaining player df
       playerstocreatedf <- playerstocreatedf[-1, ]
@@ -767,6 +782,9 @@ make_rosters_from_zero <- function() {
     subsubstep <- 0
     # Save progress
     update_progress_file(step = 4, org=1, substep=substep,subsubstep = subsubstep)
+    
+    # Save memory card
+    save_memcard()
   }
   
   # Step 4: Optimize rosters ----
@@ -817,10 +835,63 @@ make_rosters_from_zero <- function() {
     
     # Save progress
     update_progress_file(step = step, org=NA, substep=substep, subsubstep=subsubstep)
+    
+    # Save memory card
+    save_memcard()
   }
   # Done
   cat('Done with make_rosters_from_zero', "\n")
   timestamp()
+}
+
+save_memcard <- function () {
+  cat("Backing up memcard and progress files...", "\n")
+  Sys.sleep(2)
+  # Start on right page
+  stopifnot(is_on_manage_rosters_statistics())
+  
+  # Move to save mem card
+  quick_run_ahk_SendEvent('wwwwk')
+  Sys.sleep(10)
+  
+  # If no memcard is available, it will go back. Give error.
+  stopifnot(!is_on_manage_rosters_statistics())
+  
+  quick_run_ahk_SendEvent('k')
+  Sys.sleep(6)
+  quick_run_ahk_SendEvent('sk')
+  # Takes about 30 sec to save
+  Sys.sleep(60)
+  
+  # Save copy of memcard, created players and progress csvs
+  # Create folder for this memcard if not already there
+  if (!dir.exists(paste0('./data/progress_backups/', csv_date))) {
+    dir.create(paste0('./data/progress_backups/', csv_date))
+  }
+  # Create folder for this backup
+  save_dir <- paste0('./data/progress_backups/', csv_date, '/', 
+                     gsub(".", "-", 
+                          gsub(":", "-", Sys.time(), fixed=T),
+                          fixed=T))
+  dir.create(save_dir)
+  # Copy mem card there
+  file.copy(paste0(
+    "G://My Drive//Games/PCSX2/memcards/MVP05Rosters-",
+    gsub("-","",csv_date),".ps2"),
+    paste0(save_dir, "/MVP05Rosters-",
+           gsub("-","",csv_date),".ps2"))
+  # Copy created_players.csv
+  file.copy("./data/created_players.csv",
+            paste0(save_dir, '/created_players.csv'))
+  # Copy create_rosters_from_zero_progress.csv
+  file.copy("./data/create_rosters_from_zero_progress.csv",
+            paste0(save_dir, '/create_rosters_from_zero_progress.csv'))
+  
+  # It returns to base page by itself
+  # Assert ending in same place as started
+  stopifnot(is_on_manage_rosters_statistics())
+  
+  cat(".. successfully finished backing up memcard and progress files.", "\n")
 }
 if (F) { # Run ----
   # cat("Change window now", "\n")

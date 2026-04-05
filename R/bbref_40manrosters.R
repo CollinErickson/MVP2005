@@ -57,6 +57,40 @@ bbref_40man <- list(
 stopifnot(length(bbref_40man) == 30)
 stopifnot(!anyDuplicated(unlist(bbref_40man)))
 
+# When redoing, use following:
+'
+    ARI=
+    ATL=
+    BAL=
+    BOS=
+    CHC=
+    CHW=
+    CIN=
+    CLE=
+    COL=
+    DET=
+    HOU=
+    KCR=
+    LAA=
+    LAD=
+    MIA=
+    MIL=
+    MIN=
+    NYM=
+    NYY=
+    ATH=
+    PHI=
+    PIT=
+    SDP=
+    SFG=
+    SEA=
+    STL=
+    TBR=
+    TEX=
+    TOR=
+    WSN=
+'
+
 if (anyDuplicated(unlist(bbref_40man))) {
   unlist(bbref_40man)[duplicated(unlist(bbref_40man))]
 }
