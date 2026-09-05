@@ -4,6 +4,8 @@ data/*
 !data/MVP Baseball 2005 - Attribute overrides - Sheet1.csv
 !data/MVP Baseball 2005 - Map OOTP to MVP - statmap *
 !data/MVProsters/
+!data/ootp_team_to_org_map.csv
+!data/ootp_league_to_level_map.csv
 .Rhistory
 images/*
 #!images/ocr/tesseract_fails/

@@ -8,7 +8,7 @@ if (!exists('round_to_discrete')) {
 
 # Read csv ----
 # ootpdf <- readr::read_csv("C:\\Users\\colli\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 19\\saved_games\\New Game.lg\\import_export\\mlb_rosters2.txt")
-ootpdf <- readr::read_csv("./data/OOTP/ootp27_mlb_rosters_20260313.txt", skip = 0)
+ootpdf <- readr::read_csv("./data/OOTP/ootp27_mlb_rosters_20260830.txt", skip = 0)
 
 ootpdf
 
@@ -92,6 +92,19 @@ ootpdf_teammap <- ootpdf %>%
   left_join(ttodf, c('team_id', 'Team Name')) %>%
   left_join(ttldf, c('League Name')) %>% 
   {
+    # Check for missing team info in org map or level map
+    if (any(is.na(.$org_id))) {
+      cat("The following teams don't have matching org_id.", "\n")
+      cat("You probably need to redo ./data/ootp_team_to_org_map.", "\n")
+      print(. |> filter(is.na(org_id)) |> select(team_id, `Team Name`) |> unique())
+    }
+    
+    if (any(is.na(.$level_id))) {
+      cat("The following teams don't have matching level_id.", "\n")
+      cat("You probably need to redo ./data/ootp_team_to_org_map.", "\n")
+      print(. |> filter(is.na(org_id)) |> select(team_id, `Team Name`) |> unique())
+    }
+    
     stopifnot(!any(is.na(.$org_id)))
     stopifnot(!any(is.na(.$level_id)))
     .

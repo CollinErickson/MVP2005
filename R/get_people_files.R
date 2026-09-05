@@ -3,6 +3,7 @@ library(dplyr)
 suffixes <- c(0:9, letters[1:6])
 
 for (i in suffixes) {
+  cat("Downloading ", i, "\n")
   download.file(
     paste0("https://raw.githubusercontent.com/chadwickbureau/register/master/data/people-",i,".csv"),
     paste0("./data/people/people-",i,".csv"))

@@ -85,7 +85,20 @@ and my program often gets stuck for an unknown reason.
 
 1. Update the people csv by updating `./r/get_people_files.R`.
 
-1. Run `./r/ootp.R` to update MVPdf. Make sure it runs the last section
+1. Update the affiliate teams for each org if needed.
+To check if needed, you can run the next step (`./r/ootp.R`),
+it should give an error
+if it needs to be fixed.
+
+To fix team not having a matching org you need to update
+`./data/ootp_team_to_org_map.csv`:
+(1)it... (More details needed...)
+
+To fix team not having a level, you need to update
+`./data/ootp_league_to_level_map.csv`.
+
+1. Run `./r/ootp.R` to update MVPdf. First you have to change the input OOTP
+data file. Make sure it runs the last section
 of code that saves the csv. Check for errors: make sure that recently traded
 players are on correct team, make sure that best players look right, check for
 best players that won't get created (e.g., Roki Sasaki wouldn't have been
