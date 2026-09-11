@@ -498,6 +498,7 @@ screenshot_and_read <- function(file) {
   ss_out <- screenshot::screenshot(file=file)
   if (ss_out == '') {
     cat("Screenshot should have been saved to:", file, "\n")
+    cat("You may need to run screenshot::install_screenshot()", "\n")
     stop("Screenshot didn't work properly")
   }
   magick::image_read(file)

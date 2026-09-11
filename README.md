@@ -1,8 +1,10 @@
 
-# MVP Baseball 2025 (PS2)
+# MVP Baseball 2026 (PS2)
 
 <!-- badges: start -->
 <!-- badges: end -->
+
+Last update: 9/5/2026.
 
 This GitHub repo provides memory cards that have updated rosters
 for MVP Baseball 2005 on PS2.
@@ -133,30 +135,28 @@ for each team, I'm not going to manually fix any of these.
 
 ### Best and worst teams
 
-The Phillies are the best rated team, the White Sox are the worst rated team.
-Neither are surprising. The Phillies probably shouldn't be the best team since
-the game overvalues speed and fielding, but they're still really good.
+The Cubs are the best rated team, the Cardinals are the worst rated team.
+I'm surprised the Cardinals are rated that low, Cubs fans get the double win
+here.
 
-![](images/demo/20260317/best_and_worst_teams.png)
+![](images/demo/20260905/best_and_worst_teams.png)
 
 ### Top players in the dynasty fantasy draft
 
 The top players look pretty reasonable.
-Pitchers may be a bit too high relative to position players, with 8 of the top
-9 being pitchers.
-I will look at lowering pitcher ratings a bit for the next update.
+Chris Sale takes the top spot with four 99-rated pitches.
 
-![](images/demo/20260317/fantasy_draft_top_players.png)
+![](images/demo/20260905/fantasy_draft_top_players.png)
 
 ### First round in a dynasty fantasy draft
 
-Chapman at 4 and Ballesteros at 8 are crazy.
+Judge at 21 is a steal.
 
-![](images/demo/20260317/fantasy_draft_review.png)
+![](images/demo/20260905/fantasy_draft_review.png)
 
-![](images/demo/20260317/fantasy_draft_review_11_20.png)
+![](images/demo/20260905/fantasy_draft_review_11_20.png)
 
-![](images/demo/20260317/fantasy_draft_review_21_30.png)
+![](images/demo/20260905/fantasy_draft_review_21_30.png)
 
 ### Dodgers batting order
 
@@ -168,23 +168,25 @@ The downside now that both Ohtanis can be on the field at the same time.
 DH is not an option for the primary position.
 Maybe I should make Ohtani Shohei horrible at defense so he'll only be played at
 DH?
+Also that face for Ohtani Shohei was not a good choice by the random
+generator.
 
-![](images/demo/20260317/dodgers_batting_order.png)
+![](images/demo/20260905/dodgers_batting_order.png)
 
 ### Mariners rotation
 
 The Mariners rotation is very good.
 
-![](images/demo/20260317/mariners_rotation.png)
+![](images/demo/20260905/mariners_rotation.png)
 
 ### Cubs defense in game
 
 Pete CrowArms is the best name resulting from the character limit.
 
-![](images/demo/20260317/cubs_defense_before_game.png)
+![](images/demo/20260905/cubs_defense_before_game.png)
 
 ### Braves lineup in game
 
 This lineup is loaded.
 
-![](images/demo/20260317/braves_lineup_before_game.png)
+![](images/demo/20260905/braves_lineup_before_game.png)

@@ -81,7 +81,8 @@ and my program often gets stuck for an unknown reason.
 
 1. Update the top prospects list by updating `./r/MLBprospects.R`.
 
-1. Update the 40 man lists by updating `./r/bbref_40manrosters.R`.
+1. Update the 40 man lists by updating `./r/bbref_40manrosters.R`
+and `./r/MLB_40manrosters`.
 
 1. Update the people csv by updating `./r/get_people_files.R`.
 
@@ -89,16 +90,19 @@ and my program often gets stuck for an unknown reason.
 To check if needed, you can run the next step (`./r/ootp.R`),
 it should give an error
 if it needs to be fixed.
-
 To fix team not having a matching org you need to update
-`./data/ootp_team_to_org_map.csv`:
-(1)it... (More details needed...)
+  `./data/ootp_team_to_org_map.csv`:
+    - Run ```ootpdf |> filter(team_id != 0) |> transmute(team_id, `Team Name`, new_org='') |> unique() |> readr::write_csv("./data/ootp_team_to_org_map.csv")```
+    - Open that csv in a spreadsheet editor.
+    - Go through the list of teams. Every time the team is for a new org, put a 1 in the last column.
+        - The first row should be a 1.
+        - Most are obvious, but many aren't. You probably need to look up minor league teams to check their parent org.
 
-To fix team not having a level, you need to update
-`./data/ootp_league_to_level_map.csv`.
+    To fix a team not having a level, you need to update
+    `./data/ootp_league_to_level_map.csv`. (Add more details here if that happens.)
 
 1. Run `./r/ootp.R` to update MVPdf. First you have to change the input OOTP
-data file. Make sure it runs the last section
+data file name at the top. Make sure it runs the last section
 of code that saves the csv. Check for errors: make sure that recently traded
 players are on correct team, make sure that best players look right, check for
 best players that won't get created (e.g., Roki Sasaki wouldn't have been
@@ -127,14 +131,17 @@ If using a computer other than my HP Pavilion, you will likely need to edit the
 R functions that take screenshots to see what PCSX2 is showing!
 
 
-1. Run the code at the bottom of `./r/make_rosters_from_zero.R`. This takes
+1. Save a new roster file named YYYYMMDD. Run the code at the bottom of `./r/make_rosters_from_zero.R`. This takes
 about 50 hours. Use ctrl+shift+2 to interrupt occasionally to save to roster
-file. Save it to a roster file named YYYYMMDD. Also save backups of this during the
-process so that you don't lose 50 hours of progress on accident.
-When saving backups while running, add step-org-substep-subsubstep to the file
-name so that you know in case you need to go back to it.
-If it does crash and anything is lost, you need to edit created_players.csv
-and create_rosters_from_zero_progress.csv back to the last save point.
+file. 
+It automatically saves before starting each org and puts the two csv progress
+files and ps2 file in data/progress_backups.
+If it does crash and unable to continue, (1) find the latest progress_backups,
+(2) copy created_players.csv and create_rosters_from_zero_progress.csv 
+and put them into data/,
+(3) copy the ps2 file back to the PCSX2 folder (you actually don't need to
+if it is the most recent backup) and load that roster file,
+and (4) continue as before.
 Remaining bugs:
     1. It gave a bunch of Windows errors that it wasn't able
 to access a file. Probably either when it updates created_players.csv or
@@ -157,8 +164,10 @@ Also look for players that are clearly too good. Brett Phillips was one of the
 best players on the Yankees, but he had stats as a batter, but now he switched
 to be a pitcher. I just deleted him.
 
-1. Save rosters to memory card. Save memory card to `./memcards/release`.
-Update the screenshots and text in the README.md file, then build the HTML file.
+1. Save rosters to memory card. Delete any other files on the memory card.
+Save memory card to `./memcards/release`.
+Update the screenshots and text in the README.md file
+(including last update date), then build the HTML file.
 Commit and push.
 
 1. Tag the release on GitHub with the new memory card file. Make sure the .ps2
